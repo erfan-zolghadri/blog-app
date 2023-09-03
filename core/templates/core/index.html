@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container">
+        <h1 class="text-center mt-3">Welcome to Blog</h1>
+
+        <section class="mt-5">
+            <h2>Top Posts</h2>
+            <div class="row">
+                {% for post in top_posts %}
+                    <div class="col-12 col-md-6 col-lg-4">
+                        {% include "blog/includes/post.html" %}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="text-center mt-3">
+                <a href="{% url 'post_list' %}" class="btn btn-primary btn-lg">View more</a>
+            </div>
+        </section>
+
+        <section class="my-5">
+            <h2>New Posts</h2>
+            <div class="row">
+                {% for post in recent_posts %}
+                    <div class="col-12 col-md-6 col-lg-4">
+                        {% include "blog/includes/post.html" %}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="text-center mt-3">
+                <a href="{% url 'post_list' %}" class="btn btn-primary btn-lg">View more</a>
+            </div>
+        </section>
+    </div>
+{% endblock content %}

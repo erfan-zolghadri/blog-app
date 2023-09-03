@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Sign in
+{% endblock title %}
+
+{% block content %}
+    <main>
+        <div class="container">
+            <form action="{% url 'login' %}" method="post" class="form my-5">
+                {% csrf_token %}
+
+                {% include "includes/alert.html" %}
+    
+                {% if form.non_field_errors %}
+                    <ul class="form-errors">
+                        {% for error in form.non_field_errors %}
+                            <li>
+                                {{ error }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+    
+                {% if request.GET.next %}
+                    <input type="hidden" name="next" value="{{ request.GET.next }}">
+                {% endif %}
+    
+                <div>
+                    {{ form.username }}
+                </div>
+                <div>
+                    {{ form.password }}
+                </div>
+
+                <a href="{% url 'reset_password' %}">Forgot password?</a>
+                <button class="btn btn-primary">Sign in</button>
+
+                <p>
+                    Not have an account?
+                    <a href="{% url 'user_create' %}">Sign up</a>
+                </p>
+            </form>
+        </div>
+    </main>
+{% endblock content %}

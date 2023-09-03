@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ tag.name }}
+{% endblock title %}
+
+{% block content %}
+    <div class="container">
+        <h1 class="text-center mt-3">{{ tag.name }}</h1>
+
+        <section class="my-5">
+            <div class="row">
+                <div class="col-12 col-lg-9">
+                    <div class="row">
+                        {% for post in tag_posts %}
+                            <div class="col-12 col-md-6">
+                                {% include "blog/includes/post.html" %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-12 col-lg-3">
+                    <div>
+                        <h3>Top Tags</h3>
+                        <hr>
+                        {% for tag in top_tags %}
+                            {% include "blog/includes/tag.html" %}
+                        {% endfor %}
+                    </div>
+                    <div class="mt-5">
+                        <h3>Other Tags</h3>
+                        <hr>
+                        {% for tag in other_tags %}
+                            {% include "blog/includes/tag.html" %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock content %}

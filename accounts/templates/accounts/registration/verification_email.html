@@ -1,0 +1,9 @@
+{% autoescape off %}
+Hi {{ user.full_name }},
+Thank you for registering on our website.
+
+Please be so kind as to verify your email by clicking the link below:
+http://{{ domain }}{% url "verify_account" uidb64 token %}
+
+If it's not you, please ignore this email.
+{% endautoescape %}

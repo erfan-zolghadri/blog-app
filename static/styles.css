@@ -1,0 +1,19 @@
+a {
+    text-decoration: none;
+    color: #333;
+}
+
+img {
+    display: block;
+    width: 100%;
+}
+
+ul {
+    list-style: none;
+}
+
+.form-errors {
+    padding: 0;
+    margin: .5rem 0;
+    color: #cf0000;
+}

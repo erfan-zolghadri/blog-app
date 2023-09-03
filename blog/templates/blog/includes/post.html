@@ -1,0 +1,29 @@
+{% load static %}
+
+<div class="card w-100" style="width: 18rem;">
+    {% if post.image %}
+        <img src="{{ post.image.url }}" class="card-img-top" alt="Post Image">
+    {% else %}
+        <img src="{% static 'images/no_image_available.png' %}" class="card-img-top" alt="Post Image">
+    {% endif %}
+    <div class="card-body">
+        <h5 class="card-title">
+            <a href="{{ post.get_absolute_url }}">
+                {{ post.title|truncatewords:6 }}
+            </a>
+        </h5>
+        <p class="card-text">
+            <a href="{% url 'user_post_list' username=post.user.username %}">
+                {{ post.user.get_full_name }}
+            </a>
+        </p>
+        <div class="mb-3">
+            {% for tag in post.tags.all %}
+                {% if forloop.counter <= 4 %}
+                    {% include "blog/includes/tag.html" %}
+                {% endif %}
+            {% endfor %}
+        </div>
+        <a href="{{ post.get_absolute_url }}" class="btn btn-primary">Read more</a>
+    </div>
+</div>

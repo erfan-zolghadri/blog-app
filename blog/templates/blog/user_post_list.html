@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ tag.name }}
+{% endblock title %}
+
+{% block content %}
+    <div class="container">
+        <h1 class="text-center mt-3">{{ user.get_full_name }}</h1>
+
+        <section class="my-5">
+            <div class="row">
+                <div class="col-12 col-lg-9 mb-4">
+                    <div class="row">
+                        {% for post in user_posts %}
+                            <div class="col-12 col-md-6">
+                                {% include "blog/includes/post.html" %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-12 col-lg-3">
+                    <div>
+                        <h3>Top Users</h3>
+                        <hr>
+                        {% for user in top_users %}
+                            <div class="mb-4">
+                                <h4>{{ user.get_full_name|truncatewords:2 }}</h4>
+                                <a href="{% url 'user_post_list' username=user.username %}" class="text-primary">Show posts</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-5">
+                        <h3>Other Users</h3>
+                        <hr>
+                        {% for user in other_users %}
+                            <div class="mb-4">
+                                <h4>{{ user.get_full_name|truncatewords:2 }}</h4>
+                                <a href="{% url 'user_post_list' username=user.username %}" class="text-primary">Show posts</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock content %}
