@@ -1,19 +1,23 @@
+from typing import Any, Dict, Optional
 from django.core.exceptions import PermissionDenied
+from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import ListView, DetailView, DeleteView
+from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views import View
 from guardian.shortcuts import (
     assign_perm,
     get_objects_for_user,
     get_user_perms
 )
+from accounts.mixins import UserAccessMixin
 from blog.forms import PostForm
 from blog.models import Post, Tag
 
@@ -39,12 +43,12 @@ class PostDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        post = self.get_object()
+        post = self.object
 
         # Update post views
-        post.views += 1
+        post.views = F("views") + 1
         post.save()
+        post.refresh_from_db()
 
         post_tags = post.tags.all()
 
@@ -78,74 +82,51 @@ class PostDetailView(DetailView):
         return context
 
 
-class PostCreateView(PermissionRequiredMixin, View):
+class PostCreateView(UserAccessMixin, SuccessMessageMixin, CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = "blog/post_create_update.html"
+    success_url = reverse_lazy("blog:my-post-list")
+    success_message = "Your post has been successfully created."
     permission_required = "blog.add_post"
 
-    def get(self, request):
-        form = PostForm()
-        context = {"form": form}
-        return render(request, "blog/post_create_update.html", context)
+    def form_valid(self, form):
+        post = form.save(commit=False)
+        post.user = self.request.user
+        post.save()
 
-    def post(self, request):
-        form = PostForm(data=request.POST)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.user = request.user
-            post.save()
+        # Save m2m relationship (tags)
+        form.save_m2m()
 
-            # Save m2m relationships (tags)
-            form.save_m2m()
+        # Assign OLP permission to user
+        assign_perm(
+            perm="olp_blog_change_post",
+            user_or_group=self.request.user,
+            obj=post
+        )
 
-            # Assign OLP permission to user
-            assign_perm(
-                perm="olp_blog_change_post",
-                user_or_group=request.user,
-                obj=post
-            )
-
-            messages.success(
-                request,
-                _("Post has been successfully created.")
-            )
-            return redirect("my-post-list")
-        else:
-            context = {"form": form}
-            return render(request, "blog/post_create_update.html", context)
+        return super().form_valid(form)
 
 
-class PostUpdateView(PermissionRequiredMixin, View):
+class PostUpdateView(UserAccessMixin, SuccessMessageMixin, UpdateView):
+    model = Post
+    form_class = PostForm
+    template_name = "blog/post_create_update.html"
+    success_url = reverse_lazy("blog:my-post-list")
     permission_required = "blog.change_post"
+    success_message = "Your post has been successfully edited."
 
-    def get(self, request, slug):
-        post = get_object_or_404(Post, slug=slug)
-
-        if not request.user.has_perm(perm="olp_blog_change_post", obj=post):
-            raise PermissionDenied()
-
-        form = PostForm(instance=post)        
-        context = {"form": form, "post": post}
-        return render(request, "blog/post_create_update.html", context)
-
-    def post(self, request, slug):
-        post = get_object_or_404(Post, slug=slug)
-
-        if not request.user.has_perm(perm="olp_blog_change_post", obj=post):
-            raise PermissionDenied()
-
-        form = PostForm(data=request.POST, instance=post)
-        if form.is_valid():
-            form.save()
-            messages.success(
-                request,
-                message="Your post has been successfully edited."
-            )
-            return redirect("post-detail", post.slug)
-        else:
-            context = {"form": form}
-            return render(request, "blog/post_create_update.html", context)
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Check user has object-level permission (change) on post.
+        """
+        post = self.get_object()
+        if not self.request.user.has_perm(perm="olp_blog_change_post", obj=post):
+            return redirect("accounts:dashboard")
+        return super().dispatch(request, *args, **kwargs)
 
 
-class PostDeleteView(PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
+class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
     model = Post
     success_url = reverse_lazy("my-post-list")
     permission_required = "blog.delete_post"
