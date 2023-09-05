@@ -1,18 +1,18 @@
 <nav class="navbar navbar-expand-lg bg-light">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'index' %}">Blog</a>
+        <a class="navbar-brand" href="{% url 'core:index' %}">Blog</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'post_list' %}">All Posts</a>
+                    <a class="nav-link" href="{% url 'blog:post_list' %}">All Posts</a>
                 </li>
                 {% if request.user.is_authenticated %}
                     {% if perms.blog.add_post %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'post_create' %}">New Post</a>
+                            <a class="nav-link" href="{% url 'blog:post_create' %}">New Post</a>
                         </li>
                     {% endif %}
                     <li class="nav-item dropdown">
@@ -21,26 +21,26 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li>
-                                <a class="dropdown-item" href="{% url 'dashboard' %}">Dashboard</a>
+                                <a class="dropdown-item" href="{% url 'accounts:dashboard' %}">Dashboard</a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="{% url 'my_post_list' %}">My Posts</a>
+                                <a class="dropdown-item" href="{% url 'blog:my_post_list' %}">My Posts</a>
                             </li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
-                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">Sign out</a>
+                                <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">Sign out</a>
                             </li>
                         </ul>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Sign in</a>
+                        <a class="nav-link" href="{% url 'accounts:login' %}">Sign in</a>
                     </li>
                 {% endif %}
             </ul>
-            <form action="{% url 'search_posts' %}" method="get" class="d-flex" role="search">
+            <form action="{% url 'blog:search_posts' %}" method="get" class="d-flex" role="search">
                 <input class="form-control me-2" name="q" value="{{ search_query }}" type="search" placeholder="Search" aria-label="Search">
                 <button class="btn btn-outline-success" type="submit">Search</button>
             </form>

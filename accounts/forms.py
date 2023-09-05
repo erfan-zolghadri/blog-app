@@ -6,11 +6,12 @@ from django.contrib.auth.forms import (
     PasswordChangeForm as BasePasswordChangeForm
 )
 from django.utils.translation import gettext_lazy as _
+from core.forms import BootstrapyForm
 
 user_model = get_user_model()
 
 
-class UserCreationForm(BaseUserCreationForm):
+class UserCreationForm(BaseUserCreationForm, BootstrapyForm):
     error_messages = {
         "password_mismatch": _("Make sure your passwords match."),
     }
@@ -23,7 +24,7 @@ class UserCreationForm(BaseUserCreationForm):
         ]
 
 
-class AuthenticationForm(BaseAuthenticationForm):
+class AuthenticationForm(BaseAuthenticationForm, BootstrapyForm):
     error_messages = {
         "invalid_login": _(
             "Please enter a correct %(username)s and password."
@@ -40,21 +41,11 @@ class AuthenticationForm(BaseAuthenticationForm):
         })
 
 
-class UserChangeForm(BaseUserChangeForm):
+class UserChangeForm(BaseUserChangeForm, BootstrapyForm):
     class Meta:
         model = user_model
         fields = ["email", "username", "first_name", "last_name"]
 
-    def __init__(self, *args, **kwargs):
-        super(UserChangeForm, self).__init__(*args, **kwargs)
 
-        for field in self.fields:
-            self.fields[field].widget.attrs["class"] = "form-control"
-
-
-class PasswordChangeForm(BasePasswordChangeForm):
-    def __init__(self, *args, **kwargs):
-        super(PasswordChangeForm, self).__init__(*args, **kwargs)
-
-        for field in self.fields:
-            self.fields[field].widget.attrs["class"] = "form-control"
+class PasswordChangeForm(BasePasswordChangeForm, BootstrapyForm):
+    pass

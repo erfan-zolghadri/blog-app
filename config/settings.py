@@ -156,10 +156,10 @@ AUTHENTICATION_BACKENDS = (
 
 AUTH_USER_MODEL = "accounts.User"
 
-LOGIN_URL = reverse_lazy("login")
-LOGIN_REDIRECT_URL = reverse_lazy("dashboard")
+LOGIN_URL = reverse_lazy("accounts:login")
+LOGIN_REDIRECT_URL = reverse_lazy("accounts:dashboard")
 
-LOGOUT_REDIRECT_URL = reverse_lazy("index")
+LOGOUT_REDIRECT_URL = reverse_lazy("core:index")
 
 
 # Email Backend

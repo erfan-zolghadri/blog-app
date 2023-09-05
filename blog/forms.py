@@ -1,17 +1,10 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from blog.models import Post
+from core.forms import BootstrapyForm
 
 
-class PostForm(forms.ModelForm):
+class PostForm(forms.ModelForm, BootstrapyForm):
     class Meta:
         model = Post
         fields = ["title", "content", "image", "tags"]
-
-    def __init__(self, *args, **kwargs):
-        super(PostForm, self).__init__(*args, **kwargs)
-
-        for field in self.fields:
-            self.fields[field].widget.attrs.update(
-                {"class": "form-input"}
-            )

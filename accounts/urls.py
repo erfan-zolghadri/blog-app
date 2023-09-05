@@ -11,6 +11,8 @@ from accounts.views import (
     PasswordResetConfirmView
 )
 
+app_name = "accounts"
+
 urlpatterns = [
     path("register/", view=user_create, name="user_create"),
     path(

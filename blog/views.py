@@ -86,7 +86,7 @@ class PostCreateView(PermissionRequiredMixin, View):
     def get(self, request):
         form = PostForm()
         context = {"form": form}
-        return render(request, "blog/post_create.html", context)
+        return render(request, "blog/post_create_update.html", context)
 
     def post(self, request):
         form = PostForm(data=request.POST)
@@ -112,7 +112,7 @@ class PostCreateView(PermissionRequiredMixin, View):
             return redirect("my_post_list")
         else:
             context = {"form": form}
-            return render(request, "blog/post_create.html", context)
+            return render(request, "blog/post_create_update.html", context)
 
 
 class PostUpdateView(PermissionRequiredMixin, View):
@@ -125,8 +125,8 @@ class PostUpdateView(PermissionRequiredMixin, View):
             raise PermissionDenied()
 
         form = PostForm(instance=post)        
-        context = {"form": form}
-        return render(request, "blog/post_create.html", context)
+        context = {"form": form, "post": post}
+        return render(request, "blog/post_create_update.html", context)
 
     def post(self, request, slug):
         post = get_object_or_404(Post, slug=slug)
@@ -141,10 +141,10 @@ class PostUpdateView(PermissionRequiredMixin, View):
                 request,
                 message="Your post has been successfully edited."
             )
-            return redirect("post_detail", post.slug)
+            return redirect("post-detail", post.slug)
         else:
             context = {"form": form}
-            return render(request, "blog/post_create.html", context)
+            return render(request, "blog/post_create_update.html", context)
 
 
 class PostDeleteView(PermissionRequiredMixin, SuccessMessageMixin, DeleteView):

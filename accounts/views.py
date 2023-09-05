@@ -27,7 +27,7 @@ from accounts.utilities import send_verification_email
 
 def user_create(request):
     if request.user.is_authenticated:
-        return redirect("index")
+        return redirect("core:index")
 
     if request.method == "POST":
         form = UserCreationForm(data=request.POST)
@@ -49,7 +49,7 @@ def user_create(request):
                 request,
                 "The verification link has been sent to your email."
             )
-            return redirect("login")
+            return redirect("accounts:login")
     else:
         form = UserCreationForm()
 
@@ -85,7 +85,7 @@ def verify_account(request, uidb64, token):
     else:
         messages.error(request, "The link has been expired!")
 
-    return redirect("login")
+    return redirect("accounts:login")
 
 
 class LoginView(BaseLoginView):

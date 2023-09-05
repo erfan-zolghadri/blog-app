@@ -11,6 +11,8 @@ from blog.views import (
     MyPostListView
 )
 
+app_name = "blog"
+
 urlpatterns = [
     path(
         "tags/<slug:tag_slug>/",
@@ -25,7 +27,7 @@ urlpatterns = [
     path("posts/", PostListView.as_view(), name="post_list"),
     path("posts/search/", SearchPostsView.as_view(), name="search_posts"),
     path("posts/new/", PostCreateView.as_view(), name="post_create"),
-    path("posts/<slug:slug>/", PostDetailView.as_view(), name="post_detail"),
+    path("posts/<slug:slug>/", PostDetailView.as_view(), name="post-detail"),
     path("posts/<slug:slug>/edit/", PostUpdateView.as_view(), name="post_update"),
     path("posts/<slug:slug>/delete/", PostDeleteView.as_view(), name="post_delete"),
     path("my-posts/", MyPostListView.as_view(), name="my_post_list"),

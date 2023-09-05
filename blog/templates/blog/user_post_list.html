@@ -26,7 +26,7 @@
                         {% for user in top_users %}
                             <div class="mb-4">
                                 <h4>{{ user.get_full_name|truncatewords:2 }}</h4>
-                                <a href="{% url 'user_post_list' username=user.username %}" class="text-primary">Show posts</a>
+                                <a href="{% url 'blog:user_post_list' username=user.username %}" class="text-primary">Show posts</a>
                             </div>
                         {% endfor %}
                     </div>
@@ -36,7 +36,7 @@
                         {% for user in other_users %}
                             <div class="mb-4">
                                 <h4>{{ user.get_full_name|truncatewords:2 }}</h4>
-                                <a href="{% url 'user_post_list' username=user.username %}" class="text-primary">Show posts</a>
+                                <a href="{% url 'blog:user_post_list' username=user.username %}" class="text-primary">Show posts</a>
                             </div>
                         {% endfor %}
                     </div>

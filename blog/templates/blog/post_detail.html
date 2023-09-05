@@ -28,12 +28,12 @@
                     <div>
                         {% if perms.blog.change_post %}
                             {% if "olp_blog_change_post" in post_perms %}
-                                <a href="{% url 'post_update' slug=post.slug %}" class="btn btn-warning mt-3">Edit post</a>
+                                <a href="{% url 'blog:post_update' slug=post.slug %}" class="btn btn-warning mt-3">Edit post</a>
                             {% endif %}
                         {% endif %}
                         {% if perms.blog.delete_post %}
                             {% if "olp_blog_change_post" in post_perms %}
-                                <a href="{% url 'post_delete' slug=post.slug %}" class="btn btn-danger mt-3">Delete post</a>
+                                <a href="{% url 'blog:post_delete' slug=post.slug %}" class="btn btn-danger mt-3">Delete post</a>
                             {% endif %}
                         {% endif %}
                     </div>
@@ -75,7 +75,7 @@
                         {% for user in top_users %}
                             <div class="mb-4">
                                 <h4>{{ user.get_full_name|truncatewords:2 }}</h4>
-                                <a href="#" class="text-primary">Show posts</a>
+                                <a href="{% url 'blog:user_post_list' username=user.username %}" class="text-primary">Show posts</a>
                             </div>
                         {% endfor %}
                     </div>

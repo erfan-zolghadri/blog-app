@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    New post
+    {% if post %}
+        Edit post
+    {% else %}
+        New Post
+    {% endif %}
 {% endblock title %}
 
 {% block content %}
