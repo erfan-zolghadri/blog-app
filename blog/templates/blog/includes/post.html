@@ -13,7 +13,7 @@
             </a>
         </h5>
         <p class="card-text">
-            <a href="{% url 'blog:user_post_list' username=post.user.username %}">
+            <a href="{% url 'blog:user-post-list' username=post.user.username %}">
                 {{ post.user.get_full_name }}
             </a>
         </p>

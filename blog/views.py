@@ -22,9 +22,7 @@ class PostListView(ListView):
     model = Post
     context_object_name = "posts"
     template_name = "blog/post_list.html"
-    # paginate_by = None
-    # paginator_class = Paginator
-    # page_kwarg = "page"
+    paginate_by = 9
 
     def get_queryset(self):
         return Post.objects. \
@@ -109,7 +107,7 @@ class PostCreateView(PermissionRequiredMixin, View):
                 request,
                 _("Post has been successfully created.")
             )
-            return redirect("my_post_list")
+            return redirect("my-post-list")
         else:
             context = {"form": form}
             return render(request, "blog/post_create_update.html", context)
@@ -149,7 +147,7 @@ class PostUpdateView(PermissionRequiredMixin, View):
 
 class PostDeleteView(PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Post
-    success_url = reverse_lazy("my_post_list")
+    success_url = reverse_lazy("my-post-list")
     permission_required = "blog.delete_post"
     success_message = "Your post has been successfully deleted."
 
@@ -221,16 +219,16 @@ class UserPostListView(View):
 
 class SearchPostsView(View):
     def get(self, request):
-        search_query = request.GET.get("q", "")
-        if search_query:
+        query = request.GET.get("q", "")
+        if query:
             posts = Post.objects. \
                 select_related("user"). \
                 prefetch_related("tags"). \
                 filter(
-                    Q(title__icontains=search_query) |
-                    Q(user__first_name__icontains=search_query) |
-                    Q(user__last_name__icontains=search_query) |
-                    Q(tags__name__icontains=search_query),
+                    Q(title__icontains=query) |
+                    Q(user__first_name__icontains=query) |
+                    Q(user__last_name__icontains=query) |
+                    Q(tags__name__icontains=query),
                     is_active=True
                 ). \
                 order_by("-created_at").distinct()
@@ -242,7 +240,7 @@ class SearchPostsView(View):
                 order_by("-created_at")
 
         context = {
-            "search_query": search_query,
+            "query": query,
             "posts": posts
         }
         return render(request, "blog/search_posts.html", context)

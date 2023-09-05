@@ -15,6 +15,7 @@
                     </div>
                 {% endfor %}
             </div>
+            {% include "includes/pagination.html" with queryset=page_obj %}
         </section>
     </div>
 {% endblock content %}
