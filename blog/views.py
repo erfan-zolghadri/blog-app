@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional
 from django.core.exceptions import PermissionDenied
 from django.db import models
+from django.db.models.query import QuerySet
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -8,6 +9,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count, Q, F
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
+from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -141,90 +143,111 @@ class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
             raise PermissionDenied()
 
 
-class TagPostListView(View):
-    def get(self, request, tag_slug):
-        tag = get_object_or_404(Tag, slug=tag_slug)
+class TagPostListView(ListView):
+    tag = None
+    model = Post
+    context_object_name = "tag_posts"
+    template_name = "blog/tag_post_list.html"
+    paginate_by = 6
 
-        tag_posts = tag.posts. \
+    def get_queryset(self):
+        # Save tag to use in other queries
+        self.tag = get_object_or_404(Tag, slug=self.kwargs["tag_slug"])
+
+        return self.tag.posts. \
             select_related("user"). \
             prefetch_related("tags"). \
             filter(is_active=True). \
             order_by("-created_at")
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-        top_tags = Tag.objects. \
-            annotate(posts_count=Count("posts")). \
+        top_tags = Tag.objects.annotate(posts_count=Count("posts")). \
             filter(posts_count__gt=0). \
             order_by("-posts_count")[:8]
-        
-        other_tags = Tag.objects. \
-            exclude(id=tag.id). \
-            order_by("?")[:8]
 
-        context = {
-            "tag": tag,
-            "tag_posts": tag_posts,
+        other_tags = Tag.objects.exclude(id=self.tag.id).order_by("?")[:8]
+
+        context.update({
+            "tag": self.tag,
             "top_tags": top_tags,
             "other_tags": other_tags
-        }
-        return render(request, "blog/tag_post_list.html", context)
+        })
+
+        return context
 
 
-class UserPostListView(View):
-    def get(self, request, username):
-        user = get_object_or_404(get_user_model(), username=username)
+class UserPostListView(ListView):
+    user = None
+    model = Post
+    context_object_name = "user_posts"
+    template_name = "blog/user_post_list.html"
+    paginate_by = 6
 
-        user_posts = user.posts. \
+    def get_queryset(self):
+        # Save user to use in other queries
+        self.user = get_object_or_404(
+            get_user_model(),
+            username=self.kwargs["username"]
+        )
+        return self.user.posts. \
             select_related("user"). \
             prefetch_related("tags"). \
             filter(is_active=True). \
             order_by("-created_at")
-        
-        top_users = get_user_model().objects. \
-            annotate(posts_count=Count("posts")). \
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        top_users = get_user_model().objects.annotate(posts_count=Count("posts")). \
             filter(posts_count__gt=0). \
             order_by("-posts_count")[:3]
 
         other_users = get_user_model().objects. \
             annotate(posts_count=Count("posts")). \
             filter(posts_count__gt=0). \
-            exclude(username=user.username)[:3]
+            exclude(username=self.user.username)[:3]
 
-        context = {
-            "user": user,
-            "user_posts": user_posts,
+        context.update({
+            "user": self.user,
             "top_users": top_users,
             "other_users": other_users
-        }
-        return render(request, "blog/user_post_list.html", context)
+        })
+
+        return context
 
 
-class SearchPostsView(View):
-    def get(self, request):
-        query = request.GET.get("q", "")
-        if query:
-            posts = Post.objects. \
-                select_related("user"). \
+class SearchPostListView(ListView):
+    query = None
+    model = Post
+    context_object_name = "posts"
+    template_name = "blog/search_post_list.html"
+    paginate_by = 9
+
+    def get_queryset(self):
+        self.query = self.request.GET.get("q", "")
+        if self.query:
+            return Post.objects.select_related("user"). \
                 prefetch_related("tags"). \
                 filter(
-                    Q(title__icontains=query) |
-                    Q(user__first_name__icontains=query) |
-                    Q(user__last_name__icontains=query) |
-                    Q(tags__name__icontains=query),
+                    Q(title__icontains=self.query) |
+                    Q(user__first_name__icontains=self.query) |
+                    Q(user__last_name__icontains=self.query) |
+                    Q(tags__name__icontains=self.query),
                     is_active=True
                 ). \
                 order_by("-created_at").distinct()
         else:
-            posts = Post.objects. \
-                select_related("user"). \
+            return Post.objects.select_related("user"). \
                 prefetch_related("tags"). \
                 filter(is_active=True). \
                 order_by("-created_at")
 
-        context = {
-            "query": query,
-            "posts": posts
-        }
-        return render(request, "blog/search_posts.html", context)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["query"] = self.query
+        return context
 
 
 class MyPostListView(ListView):

@@ -7,6 +7,12 @@
                     <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>
+            {% else %}
+                <li class="page-item">
+                    <button class="page-link" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                    </button>
+                </li>
             {% endif %}
 
             {% for page in queryset.paginator.page_range %}
@@ -26,6 +32,12 @@
                     <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ queryset.next_page_number }}" aria-label="Next">
                     <span aria-hidden="true">&raquo;</span>
                     </a>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <button class="page-link"aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                    </button>
                 </li>
             {% endif %}
         </ul>

@@ -17,6 +17,7 @@
                                 {% include "blog/includes/post.html" %}
                             </div>
                         {% endfor %}
+                        {% include "includes/pagination.html" with queryset=page_obj %}
                     </div>
                 </div>
                 <div class="col-12 col-lg-3">
