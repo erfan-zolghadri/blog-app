@@ -1,6 +1,5 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
@@ -15,129 +14,117 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext_lazy as _
+from django.views.generic.base import RedirectView
+from django.views.generic.edit import FormView, UpdateView
 from accounts.forms import (
     AuthenticationForm,
     UserCreationForm,
     UserChangeForm,
-    PasswordChangeForm
+    PasswordChangeForm,
+    PasswordResetForm,
+    SetPasswordForm
 )
 from django.views.generic.base import TemplateView
 from accounts.utilities import send_verification_email
 
 
-def user_create(request):
-    if request.user.is_authenticated:
-        return redirect("core:index")
+class RegisterUserView(SuccessMessageMixin, FormView):
+    model = get_user_model()
+    form_class = UserCreationForm
+    template_name = "accounts/registration/register_user.html"
+    success_url = reverse_lazy("accounts:login")
+    success_message = _("The verification link has been sent to your email.")
 
-    if request.method == "POST":
-        form = UserCreationForm(data=request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False
-            user.save()
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Prevent authenticated user to access register URL.
+        """
+        if request.user.is_authenticated:
+            return redirect("accounts:dashboard")
+        return super().dispatch(request, *args, **kwargs)
 
-            email_subject = "Account Verification"
-            email_template = "accounts/registration/verification_email.html"
-            send_verification_email(
-                request,
-                user,
-                email_subject,
-                email_template
-            )
-
-            messages.info(
-                request,
-                "The verification link has been sent to your email."
-            )
-            return redirect("accounts:login")
-    else:
-        form = UserCreationForm()
-
-    context = {"form": form}
-    return render(request, "accounts/registration/user_create.html", context)
-
-
-def verify_account(request, uidb64, token):
-    try:
-        user_id = urlsafe_base64_decode(uidb64).decode()
-        user = get_user_model().objects.get(id=user_id)
-    except (
-        TypeError, ValueError, OverflowError,
-        get_user_model().DoesNotExist
-    ):
-        user = None
-
-    if (
-        (user is not None) and
-        (default_token_generator.check_token(user, token))
-    ):
-        user.is_active = True
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.is_active = False
         user.save()
 
-        # Add user to group
-        group = get_object_or_404(Group, name="Blog - Post Managers")
-        group.user_set.add(user)
-
-        messages.success(
-            request,
-            "Your account has been successfully verified."
+        email_subject = "Account Verification"
+        email_template = "accounts/registration/verification_email.html"
+        send_verification_email(
+            self.request,
+            user,
+            email_subject,
+            email_template
         )
-    else:
-        messages.error(request, "The link has been expired!")
 
-    return redirect("accounts:login")
+        return super().form_valid(form)
+
+
+class VerifyAccountView(RedirectView):
+    url = reverse_lazy("accounts:login")
+
+    def get_redirect_url(self, *args, **kwargs):
+        try:
+            user_id = urlsafe_base64_decode(self.kwargs["uidb64"]).decode()
+            user = get_user_model().objects.get(id=user_id)
+        except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+            user = None
+
+        if (
+            (user is not None) and
+            default_token_generator.check_token(user, self.kwargs["token"])
+        ):
+            user.is_active = True
+            user.save()
+
+            # Add user to group
+            group = get_object_or_404(Group, name="Blog - Post Managers")
+            group.user_set.add(user)
+
+            messages.success(self.request, _("Your account has been successfully verified."))
+        else:
+            messages.error(self.request, _("The link has been expired!"))
+        return super().get_redirect_url(*args, **kwargs)
 
 
 class LoginView(BaseLoginView):
-    template_name = "accounts/login.html"
     form_class = AuthenticationForm
+    template_name = "accounts/login.html"
     redirect_authenticated_user = True
 
 
-@login_required
-def user_update(request):
-    if request.method == "POST":
-        form = UserChangeForm(data=request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(
-                request,
-                _("Your profile has been successfully edited.")
-            )
-            return redirect("dashboard")
-    else:
-        form = UserChangeForm(instance=request.user)
+class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = get_user_model()
+    form_class = UserChangeForm
+    template_name = "accounts/user_update.html"
+    success_url = reverse_lazy("accounts:dashboard")
+    success_message = _("Your profile has been successfully edited.")
 
-    context = {"form": form}
-    return render(request, "accounts/user_update.html", context)
+    def get_object(self, queryset=None):
+        return self.request.user
 
 
-class PasswordChangeView(
-    LoginRequiredMixin,
-    SuccessMessageMixin,
-    BasePasswordChangeView
-):
-    template_name = "accounts/password/change_password.html"
+class PasswordChangeView(SuccessMessageMixin, BasePasswordChangeView):
     form_class = PasswordChangeForm
-    success_url = reverse_lazy("dashboard")
-    success_message = "Your password has been successfully changed."
+    template_name = "accounts/password/change_password.html"
+    success_url = reverse_lazy("accounts:dashboard")
+    success_message = _("Your password has been successfully changed.")
 
 
 class PasswordResetView(SuccessMessageMixin, BasePasswordResetView):
+    form_class = PasswordResetForm
     template_name = "accounts/password/reset_password.html"
-    success_url = reverse_lazy("login")
+    success_url = reverse_lazy("accounts:login")
     email_template_name = "accounts/password/reset_password_email.html"
     subject_template_name = "accounts/password/reset_password_subject.txt"
-    success_message = "Password reset link was sent to your email."
+    success_message = _("Password reset link was sent to your email.")
 
 
-class PasswordResetConfirmView(
-    SuccessMessageMixin,
-    BasePasswordResetConfirmView
-):
+class PasswordResetConfirmView(SuccessMessageMixin, BasePasswordResetConfirmView):
+    form_class = SetPasswordForm
     template_name = "accounts/password/reset_password_confirm.html"
-    success_url = reverse_lazy("login")
-    success_message = "Your password has been successfully reset."
+    success_url = reverse_lazy("accounts:login")
+    success_message = _("Your password has been successfully reset.")
 
 
 class Dashboard(LoginRequiredMixin, TemplateView):

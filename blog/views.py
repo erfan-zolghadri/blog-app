@@ -1,19 +1,13 @@
-from typing import Any, Dict, Optional
 from django.core.exceptions import PermissionDenied
-from django.db import models
-from django.db.models.query import QuerySet
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count, Q, F
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.views import View
 from guardian.shortcuts import (
     assign_perm,
     get_objects_for_user,
@@ -89,7 +83,7 @@ class PostCreateView(UserAccessMixin, SuccessMessageMixin, CreateView):
     form_class = PostForm
     template_name = "blog/post_create_update.html"
     success_url = reverse_lazy("blog:my-post-list")
-    success_message = "Your post has been successfully created."
+    success_message = _("Your post has been successfully created.")
     permission_required = "blog.add_post"
 
     def form_valid(self, form):
@@ -116,7 +110,7 @@ class PostUpdateView(UserAccessMixin, SuccessMessageMixin, UpdateView):
     template_name = "blog/post_create_update.html"
     success_url = reverse_lazy("blog:my-post-list")
     permission_required = "blog.change_post"
-    success_message = "Your post has been successfully edited."
+    success_message = _("Your post has been successfully edited.")
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -132,7 +126,7 @@ class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
     model = Post
     success_url = reverse_lazy("my-post-list")
     permission_required = "blog.delete_post"
-    success_message = "Your post has been successfully deleted."
+    success_message = _("Your post has been successfully deleted.")
 
     def get_object(self, queryset=None):
         post = super().get_object(queryset)

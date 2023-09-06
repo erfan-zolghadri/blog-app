@@ -8,11 +8,15 @@
 
         <section class="my-5">
             <div class="row">
-                {% for post in posts %}
-                    <div class="col-12 col-md-6 col-lg-4">
-                        {% include "blog/includes/post.html" %}
-                    </div>
-                {% endfor %}
+                {% if posts %}
+                    {% for post in posts %}
+                        <div class="col-12 col-md-6 col-lg-4">
+                            {% include "blog/includes/post.html" %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <h2 class="h4">You have no posts.</h2>
+                {% endif %}
             </div>
         </section>
     </div>

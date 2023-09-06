@@ -3,7 +3,9 @@ from django.contrib.auth.forms import (
     AuthenticationForm as BaseAuthenticationForm,
     BaseUserCreationForm,
     UserChangeForm as BaseUserChangeForm,
-    PasswordChangeForm as BasePasswordChangeForm
+    PasswordChangeForm as BasePasswordChangeForm,
+    PasswordResetForm as BasePasswordResetForm,
+    SetPasswordForm as BaseSetPasswordForm
 )
 from django.utils.translation import gettext_lazy as _
 from core.forms import BootstrapyForm
@@ -48,4 +50,12 @@ class UserChangeForm(BaseUserChangeForm, BootstrapyForm):
 
 
 class PasswordChangeForm(BasePasswordChangeForm, BootstrapyForm):
+    pass
+
+
+class PasswordResetForm(BasePasswordResetForm, BootstrapyForm):
+    pass
+
+
+class SetPasswordForm(BaseSetPasswordForm, BootstrapyForm):
     pass
