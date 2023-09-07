@@ -1,3 +1,4 @@
+from typing import Any
 from django.shortcuts import redirect, get_object_or_404
 from django.db.models import Count, Q, F
 from django.contrib.auth import get_user_model
@@ -191,6 +192,8 @@ class TagPostListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        tag_posts_count = self.object_list.count()
+
         top_tags = Tag.objects.annotate(posts_count=Count("posts")). \
             filter(posts_count__gt=0). \
             order_by("-posts_count")[:8]
@@ -199,6 +202,7 @@ class TagPostListView(ListView):
 
         context.update({
             "tag": self.tag,
+            "tag_posts_count": tag_posts_count,
             "top_tags": top_tags,
             "other_tags": other_tags
         })
@@ -227,6 +231,8 @@ class UserPostListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        user_posts_count = self.object_list.count()
+
         top_users = get_user_model().objects. \
             annotate(posts_count=Count("posts")). \
             filter(posts_count__gt=0). \
@@ -239,6 +245,7 @@ class UserPostListView(ListView):
 
         context.update({
             "user": self.user,
+            "user_posts_count": user_posts_count,
             "top_users": top_users,
             "other_users": other_users
         })
@@ -273,7 +280,11 @@ class SearchPostListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["query"] = self.query
+        posts_count = self.object_list.count()
+        context.update({
+            "query": self.query,
+            "posts_count": posts_count
+        })
         return context
 
 
@@ -290,6 +301,11 @@ class MyPostListView(ListView):
         )
         return posts.prefetch_related("tags").filter(is_active=True)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        posts_count = self.object_list.count()
+        context["posts_count"] = posts_count
+        return context
 
 # @login_required(login_url="login")
 # def bookmark_post(request, slug):

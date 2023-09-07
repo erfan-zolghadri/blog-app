@@ -43,5 +43,9 @@ urlpatterns = [
         PostDeleteView.as_view(),
         name="post-delete"
     ),
-    path("my-posts/", MyPostListView.as_view(), name="my-post-list"),
+    path(
+        "accounts/dashboard/posts/",
+        MyPostListView.as_view(),
+        name="my-post-list"
+    ),
 ]

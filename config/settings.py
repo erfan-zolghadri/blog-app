@@ -160,7 +160,7 @@ AUTHENTICATION_BACKENDS = (
 AUTH_USER_MODEL = "accounts.User"
 
 LOGIN_URL = reverse_lazy("accounts:login")
-LOGIN_REDIRECT_URL = reverse_lazy("accounts:dashboard")
+LOGIN_REDIRECT_URL = reverse_lazy("core:index")
 
 LOGOUT_REDIRECT_URL = reverse_lazy("core:index")
 

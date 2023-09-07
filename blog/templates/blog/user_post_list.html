@@ -7,7 +7,9 @@
 {% block content %}
     <div class="container">
         <h1 class="mt-3">{{ user.get_full_name }}</h1>
-
+        <p class="lead">
+            {{ user_posts_count }} Post{{ user_posts_count|pluralize }} found
+        </p>
         <section class="my-5">
             <div class="row">
                 <div class="col-12 col-lg-9 mb-4">

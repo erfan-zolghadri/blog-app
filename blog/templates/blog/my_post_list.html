@@ -3,9 +3,12 @@
 {% block content %}
     <div class="container">
         {% include "includes/alert.html" %}
-
-        <h1 class="mt-3">My Posts</h1>
-
+        <h1 class="mt-3">
+            My Posts
+        </h1>
+        <p class="lead">
+            {{ posts_count }} Post{{ posts_count|pluralize }} found
+        </p>
         <section class="my-5">
             <div class="row">
                 {% if posts %}
