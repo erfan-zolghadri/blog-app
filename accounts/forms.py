@@ -8,6 +8,7 @@ from django.contrib.auth.forms import (
     SetPasswordForm as BaseSetPasswordForm
 )
 from django.utils.translation import gettext_lazy as _
+
 from core.forms import BootstrapyForm
 
 user_model = get_user_model()

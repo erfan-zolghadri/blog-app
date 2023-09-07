@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import environ
 import os
+
 from django.contrib.messages import constants as messages
 from django.urls import reverse_lazy
 

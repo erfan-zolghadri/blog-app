@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 from django.shortcuts import redirect, get_object_or_404
+=======
+>>>>>>> feature
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group
@@ -11,11 +14,18 @@ from django.contrib.auth.views import (
 )
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext_lazy as _
+<<<<<<< HEAD
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView, UpdateView
+=======
+from django.views.generic.base import TemplateView, RedirectView
+from django.views.generic.edit import FormView, UpdateView
+
+>>>>>>> feature
 from accounts.forms import (
     AuthenticationForm,
     UserCreationForm,
@@ -24,7 +34,6 @@ from accounts.forms import (
     PasswordResetForm,
     SetPasswordForm
 )
-from django.views.generic.base import TemplateView
 from accounts.utilities import send_verification_email
 
 

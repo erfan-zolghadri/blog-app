@@ -1,18 +1,27 @@
 from django.core.exceptions import PermissionDenied
+<<<<<<< HEAD
 from django.shortcuts import redirect, get_object_or_404
+=======
+from django.db.models import Count, Q, F
+>>>>>>> feature
 from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count, Q, F
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+<<<<<<< HEAD
+=======
+
+>>>>>>> feature
 from guardian.shortcuts import (
     assign_perm,
     get_objects_for_user,
     get_user_perms
 )
+
 from accounts.mixins import UserAccessMixin
 from blog.forms import PostForm
 from blog.models import Post, Tag

@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+
 from guardian.admin import GuardedModelAdmin
+
 from blog.models import Post, Tag
 
 
