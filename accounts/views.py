@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 from django.shortcuts import redirect, get_object_or_404
-=======
->>>>>>> feature
-=======
->>>>>>> feature
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group
@@ -21,20 +16,14 @@ from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext_lazy as _
-<<<<<<< HEAD
-<<<<<<< HEAD
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView, UpdateView
-=======
 from django.views.generic.base import TemplateView, RedirectView
 from django.views.generic.edit import FormView, UpdateView
 
->>>>>>> feature
-=======
 from django.views.generic.base import TemplateView, RedirectView
 from django.views.generic.edit import FormView, UpdateView
 
->>>>>>> feature
 from accounts.forms import (
     AuthenticationForm,
     UserCreationForm,

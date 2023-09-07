@@ -1,34 +1,18 @@
-<<<<<<< HEAD
-from django.core.exceptions import PermissionDenied
-<<<<<<< HEAD
 from django.shortcuts import redirect, get_object_or_404
-=======
 from django.db.models import Count, Q, F
->>>>>>> feature
 from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
-=======
-from typing import Any
-from django.db import models
 from django.db.models import Count, Q, F
 from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import Http404
->>>>>>> feature
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
->>>>>>> feature
-=======
-
->>>>>>> feature
 from guardian.shortcuts import (
     assign_perm,
     get_objects_for_user,
@@ -109,11 +93,8 @@ class PostCreateView(UserAccessMixin, SuccessMessageMixin, CreateView):
     form_class = PostForm
     template_name = "blog/post_create_update.html"
     success_url = reverse_lazy("blog:my-post-list")
-<<<<<<< HEAD
     success_message = _("Your post has been successfully created.")
-=======
     success_message = _("Your post has been successfully added.")
->>>>>>> feature
     permission_required = "blog.add_post"
 
     def form_valid(self, form):
@@ -140,8 +121,6 @@ class PostUpdateView(UserAccessMixin, SuccessMessageMixin, UpdateView):
     template_name = "blog/post_create_update.html"
     permission_required = "blog.change_post"
     success_message = _("Your post has been successfully edited.")
-<<<<<<< HEAD
-=======
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -170,7 +149,6 @@ class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
     success_url = reverse_lazy("blog:my-post-list")
     permission_required = "blog.delete_post"
     success_message = _("Your post has been successfully deleted.")
->>>>>>> feature
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -181,7 +159,6 @@ class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
             return redirect("accounts:dashboard")
         return super().dispatch(request, *args, **kwargs)
 
-<<<<<<< HEAD
 
 class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
     model = Post
@@ -189,8 +166,6 @@ class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
     permission_required = "blog.delete_post"
     success_message = _("Your post has been successfully deleted.")
 
-=======
->>>>>>> feature
     def get_object(self, queryset=None):
         post = super().get_object(queryset)
         if not post.is_active:
