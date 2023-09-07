@@ -8,19 +8,18 @@ from blog.models import Post, Tag
 
 @admin.register(Post)
 class PostAdmin(GuardedModelAdmin):
-    list_display = ["title", "views", "is_active", "user"]
+    list_display = ["title", "views", "status", "is_active", "user"]
     prepopulated_fields = {"slug": ["title"]}
-    list_editable = ["is_active"]
     readonly_fields = ["views", "created_at", "updated_at"]
     search_fields = ["title"]
-    list_filter = ["is_active"]
+    list_filter = ["status", "is_active"]
     fieldsets = [
         [
             None,
             {
                 "fields": [
-                    "slug", "title", "content", "is_active", "user",
-                    "views", "tags", "image", "bookmarks", "likes"
+                    "title", "slug", "content", "image", "status", "is_active",
+                    "views", "user", "tags", "bookmarks", "likes"
                 ]
             },
         ],

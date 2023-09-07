@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from django.core.exceptions import PermissionDenied
 <<<<<<< HEAD
 from django.shortcuts import redirect, get_object_or_404
@@ -6,6 +7,14 @@ from django.db.models import Count, Q, F
 >>>>>>> feature
 from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
+=======
+from typing import Any
+from django.db import models
+from django.db.models import Count, Q, F
+from django.contrib.auth import get_user_model
+from django.contrib.messages.views import SuccessMessageMixin
+from django.http import Http404
+>>>>>>> feature
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -13,6 +22,10 @@ from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> feature
 =======
 
 >>>>>>> feature
@@ -37,8 +50,7 @@ class PostListView(ListView):
         return Post.objects. \
             select_related("user"). \
             prefetch_related("tags"). \
-            filter(is_active=True). \
-            order_by("-created_at")
+            filter(status="published", is_active=True)
 
 
 class PostDetailView(DetailView):
@@ -46,23 +58,28 @@ class PostDetailView(DetailView):
     context_object_name = "post"
     template_name = "blog/post_detail.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        post = self.object
+    def get_object(self, queryset=None):
+        # Raise HTTP 404 if post's is_active field is False.
+        post = super().get_object(queryset)
+        if not post.is_active:
+            raise Http404()
 
-        # Update post views
+        # Increment post's view
         post.views = F("views") + 1
         post.save()
         post.refresh_from_db()
 
-        post_tags = post.tags.all()
+        return post
 
-        # Get post object-level permission
-        post_perms = None
-        if self.request.user.is_authenticated:
-            post_perms = get_user_perms(user=self.request.user, obj=post)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        post = self.object
+        post_tags = post.tags.all()
+        post_perms = get_user_perms(user=self.request.user, obj=post)
 
         related_posts = Post.objects.filter(
+            status="published",
             is_active=True,
             user=post.user
         ).exclude(pk=post.pk)[:3]
@@ -92,7 +109,11 @@ class PostCreateView(UserAccessMixin, SuccessMessageMixin, CreateView):
     form_class = PostForm
     template_name = "blog/post_create_update.html"
     success_url = reverse_lazy("blog:my-post-list")
+<<<<<<< HEAD
     success_message = _("Your post has been successfully created.")
+=======
+    success_message = _("Your post has been successfully added.")
+>>>>>>> feature
     permission_required = "blog.add_post"
 
     def form_valid(self, form):
@@ -117,9 +138,39 @@ class PostUpdateView(UserAccessMixin, SuccessMessageMixin, UpdateView):
     model = Post
     form_class = PostForm
     template_name = "blog/post_create_update.html"
-    success_url = reverse_lazy("blog:my-post-list")
     permission_required = "blog.change_post"
     success_message = _("Your post has been successfully edited.")
+<<<<<<< HEAD
+=======
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Check user has object-level permission (change) on post.
+        """
+        post = self.get_object()
+        if not self.request.user.has_perm(perm="olp_blog_change_post", obj=post):
+            return redirect("accounts:dashboard")
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_object(self, queryset=None):
+        post = super().get_object(queryset)
+        if not post.is_active:
+            raise Http404()
+        return post
+    
+    def get_success_url(self):
+        return reverse_lazy(
+            viewname="blog:post-detail",
+            kwargs={"slug": self.kwargs["slug"]}
+        )
+
+
+class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
+    model = Post
+    success_url = reverse_lazy("blog:my-post-list")
+    permission_required = "blog.delete_post"
+    success_message = _("Your post has been successfully deleted.")
+>>>>>>> feature
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -130,6 +181,7 @@ class PostUpdateView(UserAccessMixin, SuccessMessageMixin, UpdateView):
             return redirect("accounts:dashboard")
         return super().dispatch(request, *args, **kwargs)
 
+<<<<<<< HEAD
 
 class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
     model = Post
@@ -137,14 +189,13 @@ class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
     permission_required = "blog.delete_post"
     success_message = _("Your post has been successfully deleted.")
 
+=======
+>>>>>>> feature
     def get_object(self, queryset=None):
         post = super().get_object(queryset)
-        if not self.request.user.has_perm(
-            perm="olp_blog_change_post",
-            obj=post
-        ):
-            raise PermissionDenied()
-
+        if not post.is_active:
+            raise Http404()
+        return post
 
 class TagPostListView(ListView):
     tag = None
@@ -160,8 +211,7 @@ class TagPostListView(ListView):
         return self.tag.posts. \
             select_related("user"). \
             prefetch_related("tags"). \
-            filter(is_active=True). \
-            order_by("-created_at")
+            filter(status="published", is_active=True)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -197,13 +247,13 @@ class UserPostListView(ListView):
         return self.user.posts. \
             select_related("user"). \
             prefetch_related("tags"). \
-            filter(is_active=True). \
-            order_by("-created_at")
+            filter(status="published", is_active=True)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        top_users = get_user_model().objects.annotate(posts_count=Count("posts")). \
+        top_users = get_user_model().objects. \
+            annotate(posts_count=Count("posts")). \
             filter(posts_count__gt=0). \
             order_by("-posts_count")[:3]
 
@@ -238,14 +288,13 @@ class SearchPostListView(ListView):
                     Q(user__first_name__icontains=self.query) |
                     Q(user__last_name__icontains=self.query) |
                     Q(tags__name__icontains=self.query),
+                    status="published",
                     is_active=True
-                ). \
-                order_by("-created_at").distinct()
+                ).distinct()
         else:
             return Post.objects.select_related("user"). \
                 prefetch_related("tags"). \
-                filter(is_active=True). \
-                order_by("-created_at")
+                filter(status="published", is_active=True)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -264,7 +313,7 @@ class MyPostListView(ListView):
             perms="olp_blog_change_post",
             klass=Post
         )
-        return posts.prefetch_related("tags").order_by("-created_at")
+        return posts.prefetch_related("tags").filter(is_active=True)
 
 
 # @login_required(login_url="login")

@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 
 
 class Tag(models.Model):
@@ -20,15 +21,23 @@ class Tag(models.Model):
 
 
 class Post(models.Model):
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    STATUS_CHOICES = [
+        (DRAFT, "Draft"),
+        (PUBLISHED, "Published")
+    ]
+
     title = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=200, unique=True)
     content = models.TextField()
-    image = models.ImageField(
-        upload_to="blog/posts",
-        null=True,
-        blank=True
-    )
+    image = models.ImageField(upload_to="blog/posts", null=True, blank=True)
     views = models.IntegerField(default=0)
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default=DRAFT
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -50,9 +59,10 @@ class Post(models.Model):
     )
 
     class Meta:
-        permissions = [
-            ("olp_blog_change_post", "OLP - Can change post")
-        ]
+        verbose_name = _("post")
+        verbose_name_plural = _("posts")
+        ordering = ["-created_at"]
+        permissions = [("olp_blog_change_post", "OLP - Can change post")]
 
     def __str__(self):
         return self.title
@@ -61,6 +71,10 @@ class Post(models.Model):
         if not self.id:
             self.slug = slugify(self.title)
         return super(Post, self).save(*args, **kwargs)
+
+    def delete(self):
+        self.is_active = False
+        self.save()
 
     def get_absolute_url(self):
         return reverse("blog:post-detail", kwargs={"slug": self.slug})

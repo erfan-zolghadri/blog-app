@@ -8,4 +8,4 @@ from core.forms import BootstrapyForm
 class PostForm(forms.ModelForm, BootstrapyForm):
     class Meta:
         model = Post
-        fields = ["title", "content", "image", "tags"]
+        fields = ["title", "content", "image", "status", "tags"]

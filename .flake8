@@ -6,4 +6,4 @@ exclude =
     migrations,
     settings.py,
     manage.py
-max-line-length = 85
+max-line-length = 79
