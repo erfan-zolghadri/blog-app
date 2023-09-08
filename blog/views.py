@@ -1,13 +1,20 @@
+<<<<<<< HEAD
 from typing import Any
 from django.shortcuts import redirect, get_object_or_404
 from django.db.models import Count, Q, F
 from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count, Q, F
+=======
+from django.db.models import Count, F, Q
+>>>>>>> feature
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.forms.forms import BaseForm
 from django.http import Http404
-from django.shortcuts import redirect, get_object_or_404
+from django.http.response import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.list import ListView
@@ -21,8 +28,8 @@ from guardian.shortcuts import (
 )
 
 from accounts.mixins import UserAccessMixin
-from blog.forms import PostForm
-from blog.models import Post, Tag
+from blog.forms import CommentForm, PostForm
+from blog.models import Comment, Post, Tag
 
 
 class PostListView(ListView):
@@ -44,9 +51,8 @@ class PostDetailView(DetailView):
     template_name = "blog/post_detail.html"
 
     def get_object(self, queryset=None):
-        # Raise HTTP 404 if post's is_active field is False.
         post = super().get_object(queryset)
-        if not post.is_active:
+        if (not post.is_active) or (post.status == Post.DRAFT):
             raise Http404()
 
         # Increment post's view
@@ -62,6 +68,11 @@ class PostDetailView(DetailView):
         post = self.object
         post_tags = post.tags.all()
         post_perms = get_user_perms(user=self.request.user, obj=post)
+
+        post_comments = post.comments.filter(is_active=True)
+        post_comments_count = post_comments.count()
+
+        form = CommentForm()
 
         related_posts = Post.objects.filter(
             status="published",
@@ -82,6 +93,9 @@ class PostDetailView(DetailView):
         context.update({
             "post_tags": post_tags,
             "post_perms": post_perms,
+            "post_comments": post_comments,
+            "post_comments_count": post_comments_count,
+            "form": form,
             "related_posts": related_posts,
             "top_users": top_users,
             "top_tags": top_tags
@@ -94,7 +108,6 @@ class PostCreateView(UserAccessMixin, SuccessMessageMixin, CreateView):
     form_class = PostForm
     template_name = "blog/post_create_update.html"
     success_url = reverse_lazy("blog:my-post-list")
-    success_message = _("Your post has been successfully created.")
     success_message = _("Your post has been successfully added.")
     permission_required = "blog.add_post"
 
@@ -172,6 +185,7 @@ class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
         if not post.is_active:
             raise Http404()
         return post
+
 
 class TagPostListView(ListView):
     tag = None
@@ -306,6 +320,30 @@ class MyPostListView(ListView):
         posts_count = self.object_list.count()
         context["posts_count"] = posts_count
         return context
+<<<<<<< HEAD
+=======
+
+
+class CommentCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = Comment
+    form_class = CommentForm
+    success_message = _("Thank you for your comment.")
+
+    def form_valid(self, form: BaseForm):
+        post = get_object_or_404(Post, slug=self.kwargs["slug"])
+        comment = form.save(commit=False)
+        comment.post = post
+        comment.user = self.request.user
+        comment.save()
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy(
+            viewname="blog:post-detail",
+            kwargs={"slug": self.kwargs["slug"]}
+        )
+    
+>>>>>>> feature
 
 # @login_required(login_url="login")
 # def bookmark_post(request, slug):

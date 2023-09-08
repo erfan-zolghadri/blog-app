@@ -80,27 +80,26 @@ class Post(models.Model):
         return reverse("blog:post-detail", kwargs={"slug": self.slug})
 
 
-# class Comment(models.Model):
-#     content = models.TextField()
-#     is_active = models.BooleanField(default=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-#     post = models.ForeignKey(
-#         Post,
-#         on_delete=models.CASCADE,
-#         related_name="comments"
-#     )
-#     user = models.ForeignKey(
-#         settings.AUTH_USER_MODEL,
-#         on_delete=models.CASCADE,
-#         related_name="comments",
-#         null=True,
-#         blank=True
-#     )
+class Comment(models.Model):
+    content = models.TextField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name="comments"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="comments"
+    )
 
-#     def __str__(self):
-#         return f"{self.user.email}"
+    class Meta:
+        verbose_name = _("comment")
+        verbose_name_plural = _("comments")
+        ordering = ["-created_at"]
 
-#     @property
-#     def full_name(self):
-#         return f"{self.user.first_name} {self.user.last_name}"
+    def __str__(self):
+        return f"by '{self.user.email}' on '{self.post.title}'"
