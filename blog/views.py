@@ -1,7 +1,9 @@
+from typing import Any
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count, F, Q
+from django.db.models.query import QuerySet
 from django.forms.forms import BaseForm
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
@@ -19,7 +21,7 @@ from guardian.shortcuts import (
 
 from accounts.mixins import UserAccessMixin
 from blog.forms import CommentForm, PostForm
-from blog.models import Comment, Post, Tag
+from blog.models import Category, Comment, Post, Tag
 
 
 class PostListView(ListView):
@@ -29,10 +31,159 @@ class PostListView(ListView):
     paginate_by = 9
 
     def get_queryset(self):
-        return Post.objects. \
+        return Post.objects.select_related("user"). \
+            prefetch_related("tags"). \
+            filter(status="published", is_active=True)
+
+
+class CategoryPostListView(ListView):
+    model = Post
+    context_object_name = "posts"
+    template_name = "blog/category_post_list.html"
+    paginate_by = 9
+
+    def get_queryset(self):
+        category = get_object_or_404(Category, slug=self.kwargs["slug"])
+        posts = Post.objects.select_related("user"). \
+            prefetch_related("tags"). \
+            filter(status=Post.PUBLISHED, is_active=True, category=category)
+        print(posts)
+        return posts
+
+
+class TagPostListView(ListView):
+    tag = None
+    model = Post
+    context_object_name = "tag_posts"
+    template_name = "blog/tag_post_list.html"
+    paginate_by = 6
+
+    def get_queryset(self):
+        # Save tag to use in other queries
+        self.tag = get_object_or_404(Tag, slug=self.kwargs["tag_slug"])
+
+        return self.tag.posts. \
             select_related("user"). \
             prefetch_related("tags"). \
             filter(status="published", is_active=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        tag_posts_count = self.object_list.count()
+
+        top_tags = Tag.objects.annotate(posts_count=Count("posts")). \
+            filter(posts_count__gt=0). \
+            order_by("-posts_count")[:8]
+
+        other_tags = Tag.objects.exclude(id=self.tag.id).order_by("?")[:8]
+
+        context.update({
+            "tag": self.tag,
+            "tag_posts_count": tag_posts_count,
+            "top_tags": top_tags,
+            "other_tags": other_tags
+        })
+
+        return context
+
+
+class UserPostListView(ListView):
+    user = None
+    model = Post
+    context_object_name = "user_posts"
+    template_name = "blog/user_post_list.html"
+    paginate_by = 6
+
+    def get_queryset(self):
+        # Save user to use in other queries
+        self.user = get_object_or_404(
+            get_user_model(),
+            username=self.kwargs["username"]
+        )
+        return self.user.posts. \
+            select_related("user"). \
+            prefetch_related("tags"). \
+            filter(status="published", is_active=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        user_posts_count = self.object_list.count()
+
+        top_users = get_user_model().objects. \
+            annotate(posts_count=Count("posts")). \
+            filter(posts_count__gt=0). \
+            order_by("-posts_count")[:3]
+
+        other_users = get_user_model().objects. \
+            annotate(posts_count=Count("posts")). \
+            filter(posts_count__gt=0). \
+            exclude(username=self.user.username)[:3]
+
+        context.update({
+            "user": self.user,
+            "user_posts_count": user_posts_count,
+            "top_users": top_users,
+            "other_users": other_users
+        })
+
+        return context
+
+
+class SearchPostListView(ListView):
+    query = None
+    model = Post
+    context_object_name = "posts"
+    template_name = "blog/search_post_list.html"
+    paginate_by = 9
+
+    def get_queryset(self):
+        self.query = self.request.GET.get("q", "")
+        if self.query:
+            return Post.objects.select_related("user"). \
+                prefetch_related("tags"). \
+                filter(
+                    Q(title__icontains=self.query) |
+                    Q(user__first_name__icontains=self.query) |
+                    Q(user__last_name__icontains=self.query) |
+                    Q(tags__name__icontains=self.query),
+                    status="published",
+                    is_active=True
+                ).distinct()
+        else:
+            return Post.objects.select_related("user"). \
+                prefetch_related("tags"). \
+                filter(status="published", is_active=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        posts_count = self.object_list.count()
+        context.update({
+            "query": self.query,
+            "posts_count": posts_count
+        })
+        return context
+
+
+class MyPostListView(ListView):
+    model = Post
+    context_object_name = "posts"
+    template_name = "blog/my_post_list.html"
+
+    def get_queryset(self):
+        posts = get_objects_for_user(
+            user=self.request.user,
+            perms="olp_blog_change_post",
+            klass=Post
+        )
+        return posts.prefetch_related("tags").filter(is_active=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        posts_count = self.object_list.count()
+        context["posts_count"] = posts_count
+        return context
 
 
 class PostDetailView(DetailView):
@@ -172,141 +323,6 @@ class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
         if not post.is_active:
             raise Http404()
         return post
-
-
-class TagPostListView(ListView):
-    tag = None
-    model = Post
-    context_object_name = "tag_posts"
-    template_name = "blog/tag_post_list.html"
-    paginate_by = 6
-
-    def get_queryset(self):
-        # Save tag to use in other queries
-        self.tag = get_object_or_404(Tag, slug=self.kwargs["tag_slug"])
-
-        return self.tag.posts. \
-            select_related("user"). \
-            prefetch_related("tags"). \
-            filter(status="published", is_active=True)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        tag_posts_count = self.object_list.count()
-
-        top_tags = Tag.objects.annotate(posts_count=Count("posts")). \
-            filter(posts_count__gt=0). \
-            order_by("-posts_count")[:8]
-
-        other_tags = Tag.objects.exclude(id=self.tag.id).order_by("?")[:8]
-
-        context.update({
-            "tag": self.tag,
-            "tag_posts_count": tag_posts_count,
-            "top_tags": top_tags,
-            "other_tags": other_tags
-        })
-
-        return context
-
-
-class UserPostListView(ListView):
-    user = None
-    model = Post
-    context_object_name = "user_posts"
-    template_name = "blog/user_post_list.html"
-    paginate_by = 6
-
-    def get_queryset(self):
-        # Save user to use in other queries
-        self.user = get_object_or_404(
-            get_user_model(),
-            username=self.kwargs["username"]
-        )
-        return self.user.posts. \
-            select_related("user"). \
-            prefetch_related("tags"). \
-            filter(status="published", is_active=True)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        user_posts_count = self.object_list.count()
-
-        top_users = get_user_model().objects. \
-            annotate(posts_count=Count("posts")). \
-            filter(posts_count__gt=0). \
-            order_by("-posts_count")[:3]
-
-        other_users = get_user_model().objects. \
-            annotate(posts_count=Count("posts")). \
-            filter(posts_count__gt=0). \
-            exclude(username=self.user.username)[:3]
-
-        context.update({
-            "user": self.user,
-            "user_posts_count": user_posts_count,
-            "top_users": top_users,
-            "other_users": other_users
-        })
-
-        return context
-
-
-class SearchPostListView(ListView):
-    query = None
-    model = Post
-    context_object_name = "posts"
-    template_name = "blog/search_post_list.html"
-    paginate_by = 9
-
-    def get_queryset(self):
-        self.query = self.request.GET.get("q", "")
-        if self.query:
-            return Post.objects.select_related("user"). \
-                prefetch_related("tags"). \
-                filter(
-                    Q(title__icontains=self.query) |
-                    Q(user__first_name__icontains=self.query) |
-                    Q(user__last_name__icontains=self.query) |
-                    Q(tags__name__icontains=self.query),
-                    status="published",
-                    is_active=True
-                ).distinct()
-        else:
-            return Post.objects.select_related("user"). \
-                prefetch_related("tags"). \
-                filter(status="published", is_active=True)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        posts_count = self.object_list.count()
-        context.update({
-            "query": self.query,
-            "posts_count": posts_count
-        })
-        return context
-
-
-class MyPostListView(ListView):
-    model = Post
-    context_object_name = "posts"
-    template_name = "blog/my_post_list.html"
-
-    def get_queryset(self):
-        posts = get_objects_for_user(
-            user=self.request.user,
-            perms="olp_blog_change_post",
-            klass=Post
-        )
-        return posts.prefetch_related("tags").filter(is_active=True)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        posts_count = self.object_list.count()
-        context["posts_count"] = posts_count
-        return context
 
 
 class CommentCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
