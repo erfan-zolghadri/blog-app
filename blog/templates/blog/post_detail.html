@@ -82,6 +82,14 @@
                                 <button class="btn btn-primary">Submit</button>
                             </form>
                         </div>
+                    {% else %}
+                        <p class="text-dark">
+                            You must
+                            <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="text-primary fw-bold">
+                                sign in
+                            </a>
+                            to add a comment.
+                        </p>
                     {% endif %}
                     {% if post_comments %}
                         <div class="mt-4">

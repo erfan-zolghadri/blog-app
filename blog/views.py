@@ -1,9 +1,7 @@
-from typing import Any
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count, F, Q
-from django.db.models.query import QuerySet
 from django.forms.forms import BaseForm
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
@@ -24,31 +22,23 @@ from blog.forms import CommentForm, PostForm
 from blog.models import Category, Comment, Post, Tag
 
 
-class PostListView(ListView):
-    model = Post
-    context_object_name = "posts"
-    template_name = "blog/post_list.html"
-    paginate_by = 9
-
-    def get_queryset(self):
-        return Post.objects.select_related("user"). \
-            prefetch_related("tags"). \
-            filter(status="published", is_active=True)
-
-
 class CategoryPostListView(ListView):
+    category = None
     model = Post
     context_object_name = "posts"
     template_name = "blog/category_post_list.html"
     paginate_by = 9
 
     def get_queryset(self):
-        category = get_object_or_404(Category, slug=self.kwargs["slug"])
-        posts = Post.objects.select_related("user"). \
+        self.category = get_object_or_404(Category, slug=self.kwargs["slug"])
+        return Post.objects.select_related("user"). \
             prefetch_related("tags"). \
-            filter(status=Post.PUBLISHED, is_active=True, category=category)
-        print(posts)
-        return posts
+            filter(status=Post.PUBLISHED, is_active=True, category=self.category)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["category"] = self.category
+        return context
 
 
 class TagPostListView(ListView):
