@@ -18,7 +18,7 @@ class UserAccessMixin(PermissionRequiredMixin):
                 self.get_login_url(),
                 self.get_redirect_field_name(),
             )
-        
+
         if not self.has_permission():
             return redirect("accounts:dashboard")
 

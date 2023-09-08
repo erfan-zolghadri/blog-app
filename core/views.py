@@ -21,6 +21,6 @@ class IndexView(ListView):
             prefetch_related("tags"). \
             filter(is_active=True). \
             order_by("-created_at")[:3]
-        
+
         context["recent_posts"] = recent_posts
         return context

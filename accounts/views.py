@@ -1,5 +1,4 @@
-
-from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group
@@ -10,17 +9,11 @@ from django.contrib.auth.views import (
     PasswordResetView as BasePasswordResetView,
     PasswordResetConfirmView as BasePasswordResetConfirmView
 )
-from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext_lazy as _
-from django.views.generic.base import RedirectView
-from django.views.generic.edit import FormView, UpdateView
-from django.views.generic.base import TemplateView, RedirectView
-from django.views.generic.edit import FormView, UpdateView
-
 from django.views.generic.base import TemplateView, RedirectView
 from django.views.generic.edit import FormView, UpdateView
 
@@ -74,7 +67,8 @@ class VerifyAccountView(RedirectView):
         try:
             user_id = urlsafe_base64_decode(self.kwargs["uidb64"]).decode()
             user = get_user_model().objects.get(id=user_id)
-        except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+        except (TypeError, ValueError, OverflowError,
+                get_user_model().DoesNotExist):
             user = None
 
         if (
@@ -88,7 +82,10 @@ class VerifyAccountView(RedirectView):
             group = get_object_or_404(Group, name="Blog - Post Managers")
             group.user_set.add(user)
 
-            messages.success(self.request, _("Your account has been successfully verified."))
+            messages.success(
+                self.request,
+                _("Your account has been successfully verified.")
+            )
         else:
             messages.error(self.request, _("The link has been expired!"))
         return super().get_redirect_url(*args, **kwargs)
@@ -127,7 +124,10 @@ class PasswordResetView(SuccessMessageMixin, BasePasswordResetView):
     success_message = _("Password reset link was sent to your email.")
 
 
-class PasswordResetConfirmView(SuccessMessageMixin, BasePasswordResetConfirmView):
+class PasswordResetConfirmView(
+    SuccessMessageMixin,
+    BasePasswordResetConfirmView
+):
     form_class = SetPasswordForm
     template_name = "accounts/password/reset_password_confirm.html"
     success_url = reverse_lazy("accounts:login")

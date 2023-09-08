@@ -1,19 +1,9 @@
-<<<<<<< HEAD
-from typing import Any
-from django.shortcuts import redirect, get_object_or_404
-from django.db.models import Count, Q, F
-from django.contrib.auth import get_user_model
-from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count, Q, F
-=======
-from django.db.models import Count, F, Q
->>>>>>> feature
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import Count, F, Q
 from django.forms.forms import BaseForm
 from django.http import Http404
-from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -84,7 +74,7 @@ class PostDetailView(DetailView):
             annotate(posts_count=Count("posts")). \
             filter(posts_count__gt=0) .\
             order_by("-posts_count")[:3]
-        
+
         top_tags = Tag.objects. \
             annotate(posts_count=Count("posts")). \
             filter(posts_count__gt=0). \
@@ -141,16 +131,18 @@ class PostUpdateView(UserAccessMixin, SuccessMessageMixin, UpdateView):
         Check user has object-level permission (change) on post.
         """
         post = self.get_object()
-        if not self.request.user.has_perm(perm="olp_blog_change_post", obj=post):
+        if not self.request.user.has_perm(
+            perm="olp_blog_change_post", obj=post
+        ):
             return redirect("accounts:dashboard")
         return super().dispatch(request, *args, **kwargs)
-    
+
     def get_object(self, queryset=None):
         post = super().get_object(queryset)
         if not post.is_active:
             raise Http404()
         return post
-    
+
     def get_success_url(self):
         return reverse_lazy(
             viewname="blog:post-detail",
@@ -169,16 +161,11 @@ class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
         Check user has object-level permission (change) on post.
         """
         post = self.get_object()
-        if not self.request.user.has_perm(perm="olp_blog_change_post", obj=post):
+        if not self.request.user.has_perm(
+            perm="olp_blog_change_post", obj=post
+        ):
             return redirect("accounts:dashboard")
         return super().dispatch(request, *args, **kwargs)
-
-
-class PostDeleteView(UserAccessMixin, SuccessMessageMixin, DeleteView):
-    model = Post
-    success_url = reverse_lazy("my-post-list")
-    permission_required = "blog.delete_post"
-    success_message = _("Your post has been successfully deleted.")
 
     def get_object(self, queryset=None):
         post = super().get_object(queryset)
@@ -202,7 +189,7 @@ class TagPostListView(ListView):
             select_related("user"). \
             prefetch_related("tags"). \
             filter(status="published", is_active=True)
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -320,8 +307,6 @@ class MyPostListView(ListView):
         posts_count = self.object_list.count()
         context["posts_count"] = posts_count
         return context
-<<<<<<< HEAD
-=======
 
 
 class CommentCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
@@ -336,14 +321,13 @@ class CommentCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
         comment.user = self.request.user
         comment.save()
         return super().form_valid(form)
-    
+
     def get_success_url(self):
         return reverse_lazy(
             viewname="blog:post-detail",
             kwargs={"slug": self.kwargs["slug"]}
         )
-    
->>>>>>> feature
+
 
 # @login_required(login_url="login")
 # def bookmark_post(request, slug):

@@ -45,14 +45,11 @@ urlpatterns = [
         name="post-delete"
     ),
     path(
-<<<<<<< HEAD
-=======
         "posts/<slug:slug>/comments/new/",
         CommentCreateView.as_view(),
         name="comment-create"
     ),
     path(
->>>>>>> feature
         "accounts/dashboard/posts/",
         MyPostListView.as_view(),
         name="my-post-list"
