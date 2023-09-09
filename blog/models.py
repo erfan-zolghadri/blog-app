@@ -5,6 +5,10 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 
+def post_media_directory(instance, filename):
+    return f"blog/posts/{instance.id}/{filename}"
+
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, unique=True)
@@ -46,7 +50,12 @@ class Post(models.Model):
     title = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=200, unique=True)
     content = models.TextField()
-    image = models.ImageField(upload_to="blog/posts", null=True, blank=True)
+    image = models.ImageField(
+        upload_to=post_media_directory,
+        null=True,
+        blank=True,
+        default="blog/posts/default.png"
+    )
     views = models.IntegerField(default=0)
     status = models.CharField(
         max_length=50,

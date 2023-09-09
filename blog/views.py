@@ -183,7 +183,12 @@ class PostDetailView(DetailView):
 
     def get_object(self, queryset=None):
         post = super().get_object(queryset)
-        if (not post.is_active) or (post.status == Post.DRAFT):
+
+        if not post.is_active:
+            raise Http404()
+
+        # Allow only post author to view draft post
+        if (post.status == Post.DRAFT) and (post.user != self.request.user):
             raise Http404()
 
         # Increment post's view

@@ -20,4 +20,4 @@ class CommentForm(forms.ModelForm, BootstrapyForm):
 class PostForm(forms.ModelForm, BootstrapyForm):
     class Meta:
         model = Post
-        fields = ["title", "content", "image", "status", "tags"]
+        fields = ["category", "title", "content", "image", "status", "tags"]

@@ -11,7 +11,7 @@ class IndexView(ListView):
     def get_queryset(self):
         return Post.objects.select_related("user"). \
             prefetch_related("tags"). \
-            filter(is_active=True). \
+            filter(status=Post.PUBLISHED, is_active=True). \
             order_by("-views")[:3]
 
     def get_context_data(self, **kwargs):
@@ -19,7 +19,7 @@ class IndexView(ListView):
 
         recent_posts = Post.objects.select_related("user"). \
             prefetch_related("tags"). \
-            filter(is_active=True). \
+            filter(status=Post.PUBLISHED, is_active=True). \
             order_by("-created_at")[:3]
 
         context["recent_posts"] = recent_posts

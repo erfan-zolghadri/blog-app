@@ -13,6 +13,9 @@
                 {{ post.user.get_full_name }}
             </a>
         </p>
+        <p class="fs-6 text-muted">
+            Status: {{ post.status }}
+        </p>
         <div class="mb-3">
             {% for tag in post.tags.all %}
                 {% if forloop.counter <= 4 %}

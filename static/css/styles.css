@@ -15,10 +15,7 @@ ul {
 .form-wrapper {
     max-width: 30rem;
     padding: 2rem 1.2rem;
-    margin-top: 5rem;
-    margin-left: auto;
-    margin-right: auto;
-    /* border: 1px solid #f5f5f5; */
+    margin: 5rem auto;
     box-shadow: 0rem 0rem .6rem #eeeeee;
 }
 
