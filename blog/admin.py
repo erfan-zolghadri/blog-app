@@ -9,15 +9,15 @@ from blog.models import Category, Comment, Post, Tag
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name']
-    prepopulated_fields = {'slug': ['name']}
+    list_display = ['title']
+    prepopulated_fields = {'slug': ['title']}
     readonly_fields = ['created_at', 'updated_at']
-    search_fields = ['name']
+    search_fields = ['title']
     fieldsets = [
         [
             None,
             {
-                'fields': ['name', 'slug']
+                'fields': ['title', 'description', 'slug']
             },
         ],
         [
@@ -32,16 +32,16 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(MPTTModelAdmin):
-    list_display = ['post', 'user', 'is_active']
+    list_display = ['post', 'user', 'status']
     readonly_fields = ['created_at', 'updated_at']
     search_fields = ['post__title', 'user__email', 'user__username']
-    list_filter = ['is_active']
+    list_filter = ['status']
     fieldsets = [
         [
             None,
             {
                 'fields': [
-                    'content', 'is_active', 'post', 'user', 'parent'
+                    'content', 'status', 'post', 'user', 'parent'
                 ]
             },
         ],

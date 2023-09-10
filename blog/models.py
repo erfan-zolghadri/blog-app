@@ -12,17 +12,18 @@ def post_media_directory(instance, filename):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, unique=True)
+    description = models.CharField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = 'categories'
-        ordering = ['name']
+        ordering = ['title']
 
     def __str__(self):
-        return self.name
+        return self.title
 
 
 class Tag(models.Model):
@@ -41,15 +42,15 @@ class Tag(models.Model):
 
 
 class Post(models.Model):
-    DRAFT = 'draft'
-    PUBLISHED = 'published'
-    STATUS_CHOICES = [
-        (DRAFT, 'Draft'),
-        (PUBLISHED, 'Published')
+    POST_STATUS_DRAFT = 'draft'
+    POST_STATUS_PUBLISHED = 'published'
+    POST_STATUS = [
+        (POST_STATUS_DRAFT, 'Draft'),
+        (POST_STATUS_PUBLISHED, 'Published')
     ]
 
-    title = models.CharField(max_length=200, unique=True)
-    slug = models.SlugField(max_length=200, unique=True)
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True)
     content = models.TextField()
     image = models.ImageField(
         upload_to=post_media_directory,
@@ -57,18 +58,18 @@ class Post(models.Model):
         blank=True,
         default='blog/posts/default.png'
     )
-    views = models.IntegerField(default=0)
+    views = models.PositiveIntegerField(default=0)
     status = models.CharField(
         max_length=50,
-        choices=STATUS_CHOICES,
-        default=DRAFT
+        choices=POST_STATUS,
+        default=POST_STATUS_DRAFT
     )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='posts'
     )
     category = models.ForeignKey(
@@ -76,16 +77,16 @@ class Post(models.Model):
         on_delete=models.PROTECT,
         related_name='posts'
     )
-    tags = models.ManyToManyField(Tag, related_name='posts', blank=True)
+    tags = models.ManyToManyField(Tag, blank=True, related_name='posts')
     bookmarks = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name='bookmarks',
-        blank=True
+        blank=True,
+        related_name='bookmarks'
     )
     likes = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name='likes',
-        blank=True
+        blank=True,
+        related_name='likes'
     )
 
     class Meta:
@@ -109,8 +110,21 @@ class Post(models.Model):
 
 
 class Comment(MPTTModel):
+    COMMENT_STATUS_PENDING = 'pending'
+    COMMENT_STATUS_APPROVED = 'approved'
+    COMMENT_STATUS_NOT_APPROVED = 'not approved'
+    COMMENT_STATUS = [
+        (COMMENT_STATUS_PENDING, 'Pending'),
+        (COMMENT_STATUS_APPROVED, 'Approved'),
+        (COMMENT_STATUS_NOT_APPROVED, 'Not approved')
+    ]
+
     content = models.TextField()
-    is_active = models.BooleanField(default=True)
+    status = models.CharField(
+        max_length=50,
+        choices=COMMENT_STATUS,
+        default=COMMENT_STATUS_PENDING
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     post = models.ForeignKey(

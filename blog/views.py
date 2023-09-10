@@ -33,7 +33,11 @@ class CategoryPostListView(ListView):
         self.category = get_object_or_404(Category, slug=self.kwargs['slug'])
         return Post.objects.select_related('user'). \
             prefetch_related('tags'). \
-            filter(status=Post.PUBLISHED, is_active=True, category=self.category)
+            filter(
+                is_active=True,
+                status=Post.POST_STATUS_PUBLISHED,
+                category=self.category
+            )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -55,7 +59,7 @@ class TagPostListView(ListView):
         return self.tag.posts. \
             select_related('user'). \
             prefetch_related('tags'). \
-            filter(status='published', is_active=True)
+            filter(is_active=True, status=Post.POST_STATUS_PUBLISHED)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -94,7 +98,7 @@ class UserPostListView(ListView):
         return self.user.posts. \
             select_related('user'). \
             prefetch_related('tags'). \
-            filter(status='published', is_active=True)
+            filter(is_active=True, status=Post.POST_STATUS_PUBLISHED)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -138,13 +142,13 @@ class SearchPostListView(ListView):
                     Q(user__first_name__icontains=self.query) |
                     Q(user__last_name__icontains=self.query) |
                     Q(tags__name__icontains=self.query),
-                    status='published',
-                    is_active=True
+                    is_active=True, 
+                    status=Post.POST_STATUS_PUBLISHED
                 ).distinct()
         else:
             return Post.objects.select_related('user'). \
                 prefetch_related('tags'). \
-                filter(status='published', is_active=True)
+                filter(is_active=True, status=Post.POST_STATUS_PUBLISHED)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -188,7 +192,8 @@ class PostDetailView(DetailView):
             raise Http404()
 
         # Allow only post author to view draft post
-        if (post.status == Post.DRAFT) and (post.user != self.request.user):
+        if (post.status == Post.POST_STATUS_DRAFT) \
+        and (post.user != self.request.user):
             raise Http404()
 
         # Increment post's view
@@ -205,14 +210,16 @@ class PostDetailView(DetailView):
         post_tags = post.tags.all()
         post_perms = get_user_perms(user=self.request.user, obj=post)
 
-        post_comments = post.comments.filter(is_active=True)
+        post_comments = post.comments.filter(
+            status=Comment.COMMENT_STATUS_APPROVED
+        )
         post_comments_count = post_comments.count()
 
         form = CommentForm()
 
         related_posts = Post.objects.filter(
-            status='published',
             is_active=True,
+            status=Post.POST_STATUS_PUBLISHED,
             user=post.user
         ).exclude(pk=post.pk)[:3]
 

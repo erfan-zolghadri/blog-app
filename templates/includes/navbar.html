@@ -15,7 +15,7 @@
                         {% for category in categories %}
                             <li>
                                 <a class="dropdown-item" href="{% url 'blog:category-post-list' slug=category.slug %}">
-                                    {{ category.name }}
+                                    {{ category.title }}
                                 </a>
                             </li>
                         {% endfor %}
