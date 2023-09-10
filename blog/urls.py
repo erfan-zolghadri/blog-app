@@ -1,61 +1,54 @@
 from django.urls import path
 
-from blog.views import (
-    CategoryPostListView,
-    TagPostListView,
-    UserPostListView,
-    SearchPostListView,
-    MyPostListView,
-    PostDetailView,
-    PostCreateView,
-    PostUpdateView,
-    PostDeleteView,
-    CommentCreateView
-)
+from blog import views
 
-app_name = "blog"
+app_name = 'blog'
 
 urlpatterns = [
     path(
-        "accounts/dashboard/posts/",
-        MyPostListView.as_view(),
-        name="my-post-list"
+        'accounts/dashboard/posts/',
+        views.MyPostListView.as_view(),
+        name='my-post-list'
     ),
     path(
-        "authors/<str:username>/",
-        UserPostListView.as_view(),
-        name="user-post-list"
+        'authors/<str:username>/',
+        views.UserPostListView.as_view(),
+        name='user-post-list'
     ),
     path(
-        "categories/<slug:slug>/",
-        CategoryPostListView.as_view(),
-        name="category-post-list"
+        'categories/<slug:slug>/',
+        views.CategoryPostListView.as_view(),
+        name='category-post-list'
     ),
     path(
-        "posts/search/",
-        SearchPostListView.as_view(),
-        name="search-post-list"
+        'posts/search/',
+        views.SearchPostListView.as_view(),
+        name='search-post-list'
     ),
-    path("posts/new/", PostCreateView.as_view(), name="post-create"),
+    path('posts/new/', views.PostCreateView.as_view(), name='post-create'),
     path(
-        "posts/<slug:slug>/comments/new/",
-        CommentCreateView.as_view(),
-        name="comment-create"
-    ),
-    path(
-        "posts/<slug:slug>/delete/",
-        PostDeleteView.as_view(),
-        name="post-delete"
+        'posts/<slug:slug>/comments/new/',
+        views.CommentCreateView.as_view(),
+        name='comment-create'
     ),
     path(
-        "posts/<slug:slug>/edit/",
-        PostUpdateView.as_view(),
-        name="post-update"
+        'posts/<slug:slug>/delete/',
+        views.PostDeleteView.as_view(),
+        name='post-delete'
     ),
-    path("posts/<slug:slug>/", PostDetailView.as_view(), name="post-detail"),
     path(
-        "tags/<slug:tag_slug>/",
-        TagPostListView.as_view(),
-        name="tag-post-list"
+        'posts/<slug:slug>/edit/',
+        views.PostUpdateView.as_view(),
+        name='post-update'
+    ),
+    path(
+        'posts/<slug:slug>/',
+        views.PostDetailView.as_view(),
+        name='post-detail'
+    ),
+    path(
+        'tags/<slug:tag_slug>/',
+        views.TagPostListView.as_view(),
+        name='tag-post-list'
     )
 ]

@@ -9,36 +9,36 @@ user_model = get_user_model()
 @admin.register(user_model)
 class UserAdmin(BaseUserAdmin):
     list_display = [
-        "email", "username", "is_active",
-        "is_staff", "is_superuser"
+        'email', 'username', 'is_active',
+        'is_staff', 'is_superuser'
     ]
     fieldsets = [
         [
             None,
             {
-                "fields": [
-                    "email", "username", "first_name",
-                    "last_name", "password"
+                'fields': [
+                    'email', 'username', 'first_name',
+                    'last_name', 'password'
                 ]
             },
         ],
         [
-            _("Permissions"),
+            _('Permissions'),
             {
-                "fields": [
-                    "is_active",
-                    "is_staff",
-                    "is_superuser",
-                    "groups",
-                    "user_permissions"
+                'fields': [
+                    'is_active',
+                    'is_staff',
+                    'is_superuser',
+                    'groups',
+                    'user_permissions'
                 ]
             }
         ],
         [
-            _("Dates"),
+            _('Dates'),
             {
-                "classes": ["collapse"],
-                "fields": ["last_login", "date_joined"]
+                'classes': ['collapse'],
+                'fields': ['last_login', 'date_joined']
             }
         ]
     ]
@@ -46,12 +46,12 @@ class UserAdmin(BaseUserAdmin):
         [
             None,
             {
-                "fields": [
-                    "email", "username", "first_name", "last_name",
-                    "password1", "password2"
+                'fields': [
+                    'email', 'username', 'first_name', 'last_name',
+                    'password1', 'password2'
                 ]
             }
         ]
     ]
-    readonly_fields = ["password", "last_login", "date_joined"]
-    search_fields = ["email", "username"]
+    readonly_fields = ['password', 'last_login', 'date_joined']
+    search_fields = ['email', 'username']

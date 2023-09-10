@@ -17,30 +17,23 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView, RedirectView
 from django.views.generic.edit import FormView, UpdateView
 
-from accounts.forms import (
-    AuthenticationForm,
-    UserCreationForm,
-    UserChangeForm,
-    PasswordChangeForm,
-    PasswordResetForm,
-    SetPasswordForm
-)
+from accounts import forms
 from accounts.utilities import send_verification_email
 
 
 class RegisterUserView(SuccessMessageMixin, FormView):
     model = get_user_model()
-    form_class = UserCreationForm
-    template_name = "accounts/registration/register_user.html"
-    success_url = reverse_lazy("accounts:login")
-    success_message = _("The verification link has been sent to your email.")
+    form_class = forms.UserCreationForm
+    template_name = 'accounts/registration/register_user.html'
+    success_url = reverse_lazy('accounts:login')
+    success_message = _('The verification link has been sent to your email.')
 
     def dispatch(self, request, *args, **kwargs):
-        """
+        '''
         Prevent authenticated user to access register URL.
-        """
+        '''
         if request.user.is_authenticated:
-            return redirect("accounts:dashboard")
+            return redirect('accounts:dashboard')
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -48,8 +41,8 @@ class RegisterUserView(SuccessMessageMixin, FormView):
         user.is_active = False
         user.save()
 
-        email_subject = "Account Verification"
-        email_template = "accounts/registration/verification_email.html"
+        email_subject = 'Account Verification'
+        email_template = 'accounts/registration/verification_email.html'
         send_verification_email(
             self.request,
             user,
@@ -61,11 +54,11 @@ class RegisterUserView(SuccessMessageMixin, FormView):
 
 
 class VerifyAccountView(RedirectView):
-    url = reverse_lazy("accounts:login")
+    url = reverse_lazy('accounts:login')
 
     def get_redirect_url(self, *args, **kwargs):
         try:
-            user_id = urlsafe_base64_decode(self.kwargs["uidb64"]).decode()
+            user_id = urlsafe_base64_decode(self.kwargs['uidb64']).decode()
             user = get_user_model().objects.get(id=user_id)
         except (TypeError, ValueError, OverflowError,
                 get_user_model().DoesNotExist):
@@ -73,66 +66,66 @@ class VerifyAccountView(RedirectView):
 
         if (
             (user is not None) and
-            default_token_generator.check_token(user, self.kwargs["token"])
+            default_token_generator.check_token(user, self.kwargs['token'])
         ):
             user.is_active = True
             user.save()
 
             # Add user to group
-            group = get_object_or_404(Group, name="Blog - Post Managers")
+            group = get_object_or_404(Group, name='Blog - Post Managers')
             group.user_set.add(user)
 
             messages.success(
                 self.request,
-                _("Your account has been successfully verified.")
+                _('Your account has been successfully verified.')
             )
         else:
-            messages.error(self.request, _("The link has been expired!"))
+            messages.error(self.request, _('The link has been expired!'))
         return super().get_redirect_url(*args, **kwargs)
 
 
 class LoginView(BaseLoginView):
-    form_class = AuthenticationForm
-    template_name = "accounts/login.html"
+    form_class = forms.AuthenticationForm
+    template_name = 'accounts/login.html'
     redirect_authenticated_user = True
 
 
 class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = get_user_model()
-    form_class = UserChangeForm
-    template_name = "accounts/user_update.html"
-    success_url = reverse_lazy("accounts:dashboard")
-    success_message = _("Your profile has been successfully edited.")
+    form_class = forms.UserChangeForm
+    template_name = 'accounts/user_update.html'
+    success_url = reverse_lazy('accounts:dashboard')
+    success_message = _('Your profile has been successfully edited.')
 
     def get_object(self, queryset=None):
         return self.request.user
 
 
 class PasswordChangeView(SuccessMessageMixin, BasePasswordChangeView):
-    form_class = PasswordChangeForm
-    template_name = "accounts/password/change_password.html"
-    success_url = reverse_lazy("accounts:dashboard")
-    success_message = _("Your password has been successfully changed.")
+    form_class = forms.PasswordChangeForm
+    template_name = 'accounts/password/change_password.html'
+    success_url = reverse_lazy('accounts:dashboard')
+    success_message = _('Your password has been successfully changed.')
 
 
 class PasswordResetView(SuccessMessageMixin, BasePasswordResetView):
-    form_class = PasswordResetForm
-    template_name = "accounts/password/reset_password.html"
-    success_url = reverse_lazy("accounts:login")
-    email_template_name = "accounts/password/reset_password_email.html"
-    subject_template_name = "accounts/password/reset_password_subject.txt"
-    success_message = _("Password reset link was sent to your email.")
+    form_class = forms.PasswordResetForm
+    template_name = 'accounts/password/reset_password.html'
+    success_url = reverse_lazy('accounts:login')
+    email_template_name = 'accounts/password/reset_password_email.html'
+    subject_template_name = 'accounts/password/reset_password_subject.txt'
+    success_message = _('Password reset link was sent to your email.')
 
 
 class PasswordResetConfirmView(
     SuccessMessageMixin,
     BasePasswordResetConfirmView
 ):
-    form_class = SetPasswordForm
-    template_name = "accounts/password/reset_password_confirm.html"
-    success_url = reverse_lazy("accounts:login")
-    success_message = _("Your password has been successfully reset.")
+    form_class = forms.SetPasswordForm
+    template_name = 'accounts/password/reset_password_confirm.html'
+    success_url = reverse_lazy('accounts:login')
+    success_message = _('Your password has been successfully reset.')
 
 
 class Dashboard(LoginRequiredMixin, TemplateView):
-    template_name = "accounts/dashboard.html"
+    template_name = 'accounts/dashboard.html'

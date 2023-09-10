@@ -4,9 +4,11 @@ from django.urls import reverse
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
+from mptt.models import MPTTModel, TreeForeignKey
+
 
 def post_media_directory(instance, filename):
-    return f"blog/posts/{instance.id}/{filename}"
+    return f'blog/posts/{instance.id}/{filename}'
 
 
 class Category(models.Model):
@@ -16,9 +18,8 @@ class Category(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = _("category")
-        verbose_name_plural = _("categories")
-        ordering = ["name"]
+        verbose_name_plural = 'categories'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -40,11 +41,11 @@ class Tag(models.Model):
 
 
 class Post(models.Model):
-    DRAFT = "draft"
-    PUBLISHED = "published"
+    DRAFT = 'draft'
+    PUBLISHED = 'published'
     STATUS_CHOICES = [
-        (DRAFT, "Draft"),
-        (PUBLISHED, "Published")
+        (DRAFT, 'Draft'),
+        (PUBLISHED, 'Published')
     ]
 
     title = models.CharField(max_length=200, unique=True)
@@ -54,7 +55,7 @@ class Post(models.Model):
         upload_to=post_media_directory,
         null=True,
         blank=True,
-        default="blog/posts/default.png"
+        default='blog/posts/default.png'
     )
     views = models.IntegerField(default=0)
     status = models.CharField(
@@ -68,30 +69,28 @@ class Post(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="posts"
+        related_name='posts'
     )
     category = models.ForeignKey(
         Category,
         on_delete=models.PROTECT,
-        related_name="posts"
+        related_name='posts'
     )
-    tags = models.ManyToManyField(Tag, related_name="posts", blank=True)
+    tags = models.ManyToManyField(Tag, related_name='posts', blank=True)
     bookmarks = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name="bookmarks",
+        related_name='bookmarks',
         blank=True
     )
     likes = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name="likes",
+        related_name='likes',
         blank=True
     )
 
     class Meta:
-        verbose_name = _("post")
-        verbose_name_plural = _("posts")
-        ordering = ["-created_at"]
-        permissions = [("olp_blog_change_post", "OLP - Can change post")]
+        ordering = ['-created_at']
+        permissions = [('olp_blog_change_post', 'OLP - Can change post')]
 
     def __str__(self):
         return self.title
@@ -106,10 +105,10 @@ class Post(models.Model):
         self.save()
 
     def get_absolute_url(self):
-        return reverse("blog:post-detail", kwargs={"slug": self.slug})
+        return reverse('blog:post-detail', kwargs={'slug': self.slug})
 
 
-class Comment(models.Model):
+class Comment(MPTTModel):
     content = models.TextField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -117,18 +116,23 @@ class Comment(models.Model):
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,
-        related_name="comments"
+        related_name='comments'
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="comments"
+        related_name='comments'
+    )
+    parent = TreeForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='children'
     )
 
-    class Meta:
-        verbose_name = _("comment")
-        verbose_name_plural = _("comments")
-        ordering = ["-created_at"]
+    class MPTTMeta:
+        order_insertion_by=['created_at']
 
     def __str__(self):
         return f"by '{self.user.email}' on '{self.post.title}'"

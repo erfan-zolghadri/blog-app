@@ -12,6 +12,17 @@ ul {
     list-style: none;
 }
 
+.btn-reply {
+    border: none;
+    outline: none;
+    background: transparent;
+}
+
+.comment-reply {
+    width: 95%;
+    margin-left: auto;
+}
+
 .form-wrapper {
     max-width: 30rem;
     padding: 2rem 1.2rem;

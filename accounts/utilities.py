@@ -11,10 +11,10 @@ def send_verification_email(request, user, email_subject, email_template):
     email_body = render_to_string(
         template_name=email_template,
         context={
-            "user": user,
-            "domain": get_current_site(request),
-            "uidb64": urlsafe_base64_encode(force_bytes(user.id)),
-            "token": default_token_generator.make_token(user),
+            'user': user,
+            'domain': get_current_site(request),
+            'uidb64': urlsafe_base64_encode(force_bytes(user.id)),
+            'token': default_token_generator.make_token(user),
         }
     )
     from_email = settings.DEFAULT_FROM_EMAIL
