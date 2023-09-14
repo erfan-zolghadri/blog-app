@@ -138,11 +138,11 @@ class SearchPostListView(ListView):
             return Post.objects.select_related('user'). \
                 prefetch_related('tags'). \
                 filter(
+                    Q(category__title__icontains=self.query) |
                     Q(title__icontains=self.query) |
                     Q(user__first_name__icontains=self.query) |
                     Q(user__last_name__icontains=self.query) |
                     Q(tags__name__icontains=self.query),
-                    Q(category__title__icontains=self.query),
                     is_active=True, 
                     status=Post.POST_STATUS_PUBLISHED
                 ).distinct()

@@ -11,6 +11,10 @@ from django.utils.translation import gettext_lazy as _
 from guardian.mixins import GuardianUserMixin
 
 
+def user_media_directory(instance, filename):
+    return f'accounts/users/{instance.id}/{filename}'
+
+
 class UserManager(BaseUserManager):
     def create_user(
         self,
@@ -28,10 +32,10 @@ class UserManager(BaseUserManager):
             raise ValueError('Users must have an username.')
 
         if not first_name:
-            raise ValueError('Users must have an first_name.')
+            raise ValueError('Users must have a first_name.')
 
         if not last_name:
-            raise ValueError('Users must have an last_name.')
+            raise ValueError('Users must have a last_name.')
 
         email = self.normalize_email(email)
         user = self.model(
@@ -72,7 +76,7 @@ class User(AbstractBaseUser, PermissionsMixin, GuardianUserMixin):
     username_validator = UnicodeUsernameValidator()
 
     email = models.EmailField(
-        verbose_name=_('email address'),
+        verbose_name='email address',
         max_length=255,
         unique=True,
         error_messages={
@@ -92,8 +96,15 @@ class User(AbstractBaseUser, PermissionsMixin, GuardianUserMixin):
     )
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
+    image = models.ImageField(
+        upload_to=user_media_directory,
+        null=True,
+        blank=True,
+        default='accounts/users/default.svg'
+    )
+    bio = models.CharField(max_length=500, blank=True)
     is_active = models.BooleanField(
-        verbose_name=_('active'),
+        verbose_name='active',
         default=True,
         help_text=_(
             'Designates whether this user should be treated as active. '
@@ -101,7 +112,7 @@ class User(AbstractBaseUser, PermissionsMixin, GuardianUserMixin):
         )
     )
     is_staff = models.BooleanField(
-        verbose_name=_('staff status'),
+        verbose_name='staff status',
         default=False,
         help_text=_(
             'Designates whether the user can log into this admin site.'

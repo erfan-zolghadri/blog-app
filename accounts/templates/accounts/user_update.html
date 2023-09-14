@@ -7,8 +7,9 @@
 {% block content %}
     <main>
         <div class="container">
-            <div class="form-wrapper">
-                <form action="{% url 'accounts:user-update' %}" method="post">
+            <div class="form-wrapper form-wrapper--lg">
+                <img src="{{ request.user.image.url }}" alt="User Profile" class="user-profile-image mb-4">
+                <form action="{% url 'accounts:user-update' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
     
                     {% if form.non_field_errors %}
@@ -20,6 +21,18 @@
                             {% endfor %}
                         </ul>
                     {% endif %}
+
+                    <div class="mb-3">
+                        {{ form.image.label_tag }}
+                        {{ form.image }}
+                        {% if form.image.errors %}
+                            <ul>
+                                {% for error in form.image.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
     
                     <div class="mb-3">
                         {{ form.email.label_tag }}
@@ -66,6 +79,18 @@
                         {% if form.last_name.errors %}
                             <ul>
                                 {% for error in form.last_name.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.bio.label_tag }}
+                        {{ form.bio }}
+                        {% if form.bio.errors %}
+                            <ul>
+                                {% for error in form.bio.errors %}
                                     <li>{{ error }}</li>
                                 {% endfor %}
                             </ul>

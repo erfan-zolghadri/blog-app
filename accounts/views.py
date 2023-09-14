@@ -23,7 +23,7 @@ from accounts.utilities import send_verification_email
 
 class RegisterUserView(SuccessMessageMixin, FormView):
     model = get_user_model()
-    form_class = forms.UserCreationForm
+    form_class = forms.RegisterUserForm
     template_name = 'accounts/registration/register_user.html'
     success_url = reverse_lazy('accounts:login')
     success_message = _('The verification link has been sent to your email.')
@@ -61,7 +61,7 @@ class VerifyAccountView(RedirectView):
             user_id = urlsafe_base64_decode(self.kwargs['uidb64']).decode()
             user = get_user_model().objects.get(id=user_id)
         except (TypeError, ValueError, OverflowError,
-                get_user_model().DoesNotExist):
+            get_user_model().DoesNotExist):
             user = None
 
         if (
@@ -85,7 +85,7 @@ class VerifyAccountView(RedirectView):
 
 
 class LoginView(BaseLoginView):
-    form_class = forms.AuthenticationForm
+    form_class = forms.LoginForm
     template_name = 'accounts/login.html'
     redirect_authenticated_user = True
 

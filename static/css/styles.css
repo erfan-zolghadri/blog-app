@@ -47,3 +47,12 @@ ul {
     margin: .5rem 0;
     color: #cf0000;
 }
+
+.user-profile-image {
+    width: 10rem;
+}
+
+.user-profile-image--sm {
+    width: 4rem;
+    padding-left: 1rem;
+}

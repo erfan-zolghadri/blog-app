@@ -64,7 +64,7 @@ class Post(models.Model):
         choices=POST_STATUS,
         default=POST_STATUS_DRAFT
     )
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(verbose_name='active', default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(

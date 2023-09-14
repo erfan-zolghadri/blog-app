@@ -18,7 +18,7 @@ class UserAdmin(BaseUserAdmin):
             {
                 'fields': [
                     'email', 'username', 'first_name',
-                    'last_name', 'password'
+                    'last_name', 'image', 'bio', 'password'
                 ]
             },
         ],

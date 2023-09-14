@@ -20,12 +20,12 @@ urlpatterns = [
         views.CategoryPostListView.as_view(),
         name='category-post-list'
     ),
+    path('posts/new/', views.PostCreateView.as_view(), name='post-create'),
     path(
         'posts/search/',
         views.SearchPostListView.as_view(),
         name='search-post-list'
     ),
-    path('posts/new/', views.PostCreateView.as_view(), name='post-create'),
     path(
         'posts/<slug:slug>/comments/new/',
         views.CommentCreateView.as_view(),

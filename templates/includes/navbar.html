@@ -28,6 +28,9 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li>
+                                <img src="{{ request.user.image.url }}" alt="" class="user-profile-image--sm">
+                            </li>
+                            <li>
                                 <a class="dropdown-item" href="{% url 'accounts:dashboard' %}">Dashboard</a>
                             </li>
                             <li>

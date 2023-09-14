@@ -8,28 +8,35 @@
     <main>
         <div class="container">
             {% include "includes/alert.html" %}
-            <table class="table mt-5">
-                <tbody>
-                    <tr>
-                        <td>Email address</td>
-                        <td>{{ request.user.email }}</td>
-                    </tr>
-                    <tr>
-                        <td>Username</td>
-                        <td>{{ request.user.username }}</td>
-                    </tr>
-                    <tr>
-                        <td>First name</td>
-                        <td>{{ request.user.first_name }}</td>
-                    </tr>
-                    <tr>
-                        <td>Last name</td>
-                        <td>{{ request.user.last_name }}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <a href="{% url 'accounts:user-update' %}" class="btn btn-primary">Edit profile</a>
-            <a href="{% url 'accounts:change-password' %}" class="btn btn-warning">Change password</a>
+            <div class="my-5">
+                <img src="{{ request.user.image.url }}" alt="User Profile" class="user-profile-image mb-4">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td>Bio</td>
+                            <td>{{ request.user.bio }}</td>
+                        </tr>
+                        <tr>
+                            <td>Email address</td>
+                            <td>{{ request.user.email }}</td>
+                        </tr>
+                        <tr>
+                            <td>Username</td>
+                            <td>{{ request.user.username }}</td>
+                        </tr>
+                        <tr>
+                            <td>First name</td>
+                            <td>{{ request.user.first_name }}</td>
+                        </tr>
+                        <tr>
+                            <td>Last name</td>
+                            <td>{{ request.user.last_name }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <a href="{% url 'accounts:user-update' %}" class="btn btn-primary">Edit profile</a>
+                <a href="{% url 'accounts:change-password' %}" class="btn btn-warning">Change password</a>
+            </div>
         </div>
     </main>
 {% endblock content %}
