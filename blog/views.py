@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
@@ -7,6 +8,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
+from django.views import View
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -161,10 +163,12 @@ class SearchPostListView(ListView):
         return context
 
 
-class MyPostListView(ListView):
+class MyPostListView(UserAccessMixin, ListView):
     model = Post
     context_object_name = 'posts'
     template_name = 'blog/my_post_list.html'
+    paginate_by = 9
+    permission_required = 'blog.view_post'
 
     def get_queryset(self):
         posts = get_objects_for_user(
@@ -192,7 +196,7 @@ class PostDetailView(DetailView):
         if not post.is_active:
             raise Http404()
 
-        # Allow only post author to view draft post
+        # Allow only post authors to view their draft posts
         if (post.status == Post.POST_STATUS_DRAFT) \
         and (post.user != self.request.user):
             raise Http404()
@@ -216,6 +220,16 @@ class PostDetailView(DetailView):
         )
         post_comments_count = post_comments.count()
 
+        # Check post is bookmarkable
+        is_bookmarkable = True
+        if post.status == Post.POST_STATUS_DRAFT:
+            is_bookmarkable = False
+
+        # Check current user has bookmarked post
+        is_bookmarked = False
+        if self.request.user in post.bookmarks.all():
+            is_bookmarked = True
+
         form = CommentForm()
 
         related_posts = Post.objects.filter(
@@ -237,6 +251,8 @@ class PostDetailView(DetailView):
         context.update({
             'post_tags': post_tags,
             'post_perms': post_perms,
+            'is_bookmarkable': is_bookmarkable,
+            'is_bookmarked': is_bookmarked,
             'post_comments': post_comments,
             'post_comments_count': post_comments_count,
             'form': form,
@@ -348,29 +364,42 @@ class CommentCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
         )
 
 
-# @login_required(login_url="login")
-# def bookmark_post(request, slug):
-#     if request.method == "POST":
-#         post = get_object_or_404(Post, slug=slug, is_active=True)
-#         if post.bookmarks.filter(id=request.user.id).exists():
-#             post.bookmarks.remove(request.user)
-#         else:
-#             post.bookmarks.add(request.user)
-#     return redirect("post-detail", slug)
+class BookmarkPostView(LoginRequiredMixin, View):
+    def get(self, request, slug):
+        post = get_object_or_404(
+            Post,
+            slug=slug,
+            is_active=True,
+            status=Post.POST_STATUS_PUBLISHED
+        )
+
+        if post.bookmarks.filter(id=request.user.id).exists():
+            messages.success(
+                request,
+                _('Post has been successfully removed from your bookmarks.')
+            )
+            post.bookmarks.remove(request.user)
+        else:
+            messages.success(
+                request,
+                _('Post has been successfully added to your bookmarks.')
+            )
+            post.bookmarks.add(request.user)
+
+        return redirect("blog:post-detail", slug)
 
 
-# @login_required(login_url="login")
-# def bookmarked_posts(request):
-#     posts = request.user.bookmarks.all(). \
-#         filter(is_active=True). \
-#         select_related("user"). \
-#         prefetch_related("tags"). \
-#         order_by("-created_at")
+class BookmarksView(LoginRequiredMixin, ListView):
+    model = Post
+    context_object_name = 'posts'
+    template_name = 'blog/bookmarks.html'
+    paginate_by = 9
 
-#     paginated_posts = paginate(request, queryset=posts)
-
-#     context = {"posts": paginated_posts}
-#     return render(request, "blog/bookmarked_posts.html", context)
+    def get_queryset(self):
+        return self.request.user.bookmarks \
+            .select_related('user') \
+            .prefetch_related('tags') \
+            .filter(bookmarks=self.request.user)
 
 
 # @login_required(login_url="login")

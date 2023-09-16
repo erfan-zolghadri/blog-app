@@ -28,17 +28,22 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li>
-                                <img src="{{ request.user.image.url }}" alt="" class="user-profile-image--sm">
+                                <img src="{{ request.user.image.url }}" alt="User Profile" class="user-profile-image--sm">
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'accounts:dashboard' %}">Dashboard</a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="{% url 'blog:my-post-list' %}">My Posts</a>
+                                <a class="dropdown-item" href="{% url 'blog:bookmarks' %}">Bookmarks</a>
                             </li>
                             {% if perms.blog.add_post %}
                                 <li>
                                     <a class="dropdown-item" href="{% url 'blog:post-create' %}">New post</a>
+                                </li>
+                            {% endif %}
+                            {% if perms.blog.view_post %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'blog:my-post-list' %}">My Posts</a>
                                 </li>
                             {% endif %}
                             <li>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    My Posts
+    Bookmarks
 {% endblock title %}
 
 {% block content %}
@@ -9,9 +9,9 @@
         {% include "includes/alert.html" %}
         <section class="my-5">
             <div class="mb-4">
-                <h1>My Posts</h1>
+                <h1>Bookmarks</h1>
                 <p class="lead">
-                    {{ posts_count }} Post{{ posts_count|pluralize }} found
+                    {{ posts.count }} Post{{ posts.count|pluralize }}
                 </p>
             </div>
             <div class="row">
@@ -20,7 +20,7 @@
                         {% include "blog/includes/private_post.html" %}
                     </div>
                 {% empty %}
-                    <h2 class="h4">You have no posts.</h2>
+                    <h2 class="h4">You have no bookmarks.</h2>
                 {% endfor %}
             </div>
             {% include "includes/pagination.html" with queryset=page_obj %}

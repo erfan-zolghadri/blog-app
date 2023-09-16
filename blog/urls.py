@@ -6,7 +6,12 @@ app_name = 'blog'
 
 urlpatterns = [
     path(
-        'accounts/dashboard/posts/',
+        'bookmarks/',
+        views.BookmarksView.as_view(),
+        name='bookmarks'
+    ),
+    path(
+        'my-posts/',
         views.MyPostListView.as_view(),
         name='my-post-list'
     ),
@@ -25,6 +30,11 @@ urlpatterns = [
         'posts/search/',
         views.SearchPostListView.as_view(),
         name='search-post-list'
+    ),
+    path(
+        'posts/<slug:slug>/bookmark/',
+        views.BookmarkPostView.as_view(),
+        name='bookmark-post'
     ),
     path(
         'posts/<slug:slug>/comments/new/',
@@ -50,5 +60,5 @@ urlpatterns = [
         'tags/<slug:tag_slug>/',
         views.TagPostListView.as_view(),
         name='tag-post-list'
-    )
+    ),
 ]
