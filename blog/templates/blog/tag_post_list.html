@@ -6,11 +6,11 @@
 
 {% block content %}
     <div class="container">
-        <h1 class="mt-3">{{ tag.name }}</h1>
-        <p class="lead">
-            {{ tag_posts_count }} Post{{ tag_posts_count|pluralize }} found
-        </p>
         <section class="my-5">
+            <h1 class="mt-3">{{ tag.name }}</h1>
+            <p class="lead">
+                {{ tag_posts_count }} Post{{ tag_posts_count|pluralize }} found
+            </p>
             <div class="row">
                 <div class="col-12 col-lg-9">
                     <div class="row">

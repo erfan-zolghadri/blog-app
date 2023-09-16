@@ -33,13 +33,7 @@ class CategoryPostListView(ListView):
 
     def get_queryset(self):
         self.category = get_object_or_404(Category, slug=self.kwargs['slug'])
-        return Post.objects.select_related('user'). \
-            prefetch_related('tags'). \
-            filter(
-                is_active=True,
-                status=Post.POST_STATUS_PUBLISHED,
-                category=self.category
-            )
+        return Post.published.filter(category=self.category)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -58,19 +52,16 @@ class TagPostListView(ListView):
         # Save tag to use in other queries
         self.tag = get_object_or_404(Tag, slug=self.kwargs['tag_slug'])
 
-        return self.tag.posts. \
-            select_related('user'). \
-            prefetch_related('tags'). \
-            filter(is_active=True, status=Post.POST_STATUS_PUBLISHED)
+        return Post.published.filter(tags=self.tag)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         tag_posts_count = self.object_list.count()
 
-        top_tags = Tag.objects.annotate(posts_count=Count('posts')). \
-            filter(posts_count__gt=0). \
-            order_by('-posts_count')[:8]
+        top_tags = Tag.objects.annotate(posts_count=Count('posts')) \
+            .filter(posts_count__gt=0).order_by('-posts_count')[:8]
+        print(top_tags)
 
         other_tags = Tag.objects.exclude(id=self.tag.id).order_by('?')[:8]
 
@@ -97,20 +88,18 @@ class UserPostListView(ListView):
             get_user_model(),
             username=self.kwargs['username']
         )
-        return self.user.posts. \
-            select_related('user'). \
-            prefetch_related('tags'). \
-            filter(is_active=True, status=Post.POST_STATUS_PUBLISHED)
+
+        return Post.published.filter(user=self.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         user_posts_count = self.object_list.count()
 
-        top_users = get_user_model().objects. \
-            annotate(posts_count=Count('posts')). \
-            filter(posts_count__gt=0). \
-            order_by('-posts_count')[:3]
+        top_users = get_user_model().objects \
+            .annotate(posts_count=Count('posts')) \
+            .filter(posts_count__gt=0) \
+            .order_by('-posts_count')[:3]
 
         other_users = get_user_model().objects. \
             annotate(posts_count=Count('posts')). \
@@ -137,21 +126,17 @@ class SearchPostListView(ListView):
     def get_queryset(self):
         self.query = self.request.GET.get('q', '')
         if self.query:
-            return Post.objects.select_related('user'). \
-                prefetch_related('tags'). \
-                filter(
-                    Q(category__title__icontains=self.query) |
-                    Q(title__icontains=self.query) |
-                    Q(user__first_name__icontains=self.query) |
-                    Q(user__last_name__icontains=self.query) |
-                    Q(tags__name__icontains=self.query),
-                    is_active=True, 
-                    status=Post.POST_STATUS_PUBLISHED
-                ).distinct()
+            return Post.published.filter(
+                Q(category__title__icontains=self.query) |
+                Q(title__icontains=self.query) |
+                Q(user__first_name__icontains=self.query) |
+                Q(user__last_name__icontains=self.query) |
+                Q(tags__name__icontains=self.query),
+                is_active=True, 
+                status=Post.POST_STATUS_PUBLISHED
+            ).distinct()
         else:
-            return Post.objects.select_related('user'). \
-                prefetch_related('tags'). \
-                filter(is_active=True, status=Post.POST_STATUS_PUBLISHED)
+            return Post.published.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -176,7 +161,9 @@ class MyPostListView(UserAccessMixin, ListView):
             perms='olp_blog_change_post',
             klass=Post
         )
-        return posts.prefetch_related('tags').filter(is_active=True)
+        return posts.filter(is_active=True) \
+            .select_related('user') \
+            .prefetch_related('tags')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -232,11 +219,8 @@ class PostDetailView(DetailView):
 
         form = CommentForm()
 
-        related_posts = Post.objects.filter(
-            is_active=True,
-            status=Post.POST_STATUS_PUBLISHED,
-            user=post.user
-        ).exclude(pk=post.pk)[:3]
+        related_posts = Post.published.filter(user=post.user) \
+            .exclude(pk=post.pk)[:3]
 
         top_users = get_user_model().objects. \
             annotate(posts_count=Count('posts')). \
@@ -396,10 +380,9 @@ class BookmarksView(LoginRequiredMixin, ListView):
     paginate_by = 9
 
     def get_queryset(self):
-        return self.request.user.bookmarks \
-            .select_related('user') \
-            .prefetch_related('tags') \
-            .filter(bookmarks=self.request.user)
+        return Post.published.filter(
+            bookmarks=self.request.user
+        )
 
 
 # @login_required(login_url="login")

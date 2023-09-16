@@ -41,6 +41,14 @@ class Tag(models.Model):
         return super(Tag, self).save(*args, **kwargs)
 
 
+class PublishedPostManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset() \
+            .select_related('user') \
+            .prefetch_related('tags') \
+            .filter(status=Post.POST_STATUS_PUBLISHED, is_active=True)
+
+
 class Post(models.Model):
     POST_STATUS_DRAFT = 'draft'
     POST_STATUS_PUBLISHED = 'published'
@@ -88,6 +96,9 @@ class Post(models.Model):
         blank=True,
         related_name='likes'
     )
+
+    objects = models.Manager()
+    published = PublishedPostManager()
 
     class Meta:
         ordering = ['-created_at']
