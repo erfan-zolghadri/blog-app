@@ -80,6 +80,7 @@ class UserPostListView(ListView):
     model = Post
     context_object_name = 'user_posts'
     template_name = 'blog/user_post_list.html'
+    # template_name = 'blog/test.html'
     paginate_by = 6
 
     def get_queryset(self):
@@ -96,10 +97,11 @@ class UserPostListView(ListView):
 
         user_posts_count = self.object_list.count()
 
-        top_users = get_user_model().objects \
-            .annotate(posts_count=Count('posts')) \
-            .filter(posts_count__gt=0) \
-            .order_by('-posts_count')[:3]
+        # Top users based on the number of published posts
+        top_users = get_user_model().objects.annotate(posts_count=Count(
+            'posts',
+            filter=Q(posts__status=Post.POST_STATUS_PUBLISHED)
+        )).filter(posts_count__gt=0).order_by('-posts_count')[:10]
 
         other_users = get_user_model().objects. \
             annotate(posts_count=Count('posts')). \
