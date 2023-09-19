@@ -9,9 +9,9 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import View
-from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.list import ListView
 
 from guardian.shortcuts import (
     assign_perm,
@@ -59,10 +59,7 @@ class TagPostListView(ListView):
 
         tag_posts_count = self.object_list.count()
 
-        top_tags = Tag.objects.annotate(posts_count=Count('posts')) \
-            .filter(posts_count__gt=0).order_by('-posts_count')[:8]
-        print(top_tags)
-
+        top_tags = Tag.get_top_tags(self)
         other_tags = Tag.objects.exclude(id=self.tag.id).order_by('?')[:8]
 
         context.update({
@@ -98,10 +95,13 @@ class UserPostListView(ListView):
         user_posts_count = self.object_list.count()
 
         # Top users based on the number of published posts
-        top_users = get_user_model().objects.annotate(posts_count=Count(
+        published_posts_count = Count(
             'posts',
             filter=Q(posts__status=Post.POST_STATUS_PUBLISHED)
-        )).filter(posts_count__gt=0).order_by('-posts_count')[:10]
+        )
+        top_users = get_user_model().objects \
+            .annotate(posts_count=published_posts_count) \
+            .filter(posts_count__gt=0).order_by('-posts_count')[:3]
 
         other_users = get_user_model().objects. \
             annotate(posts_count=Count('posts')). \
@@ -134,7 +134,7 @@ class SearchPostListView(ListView):
                 Q(user__first_name__icontains=self.query) |
                 Q(user__last_name__icontains=self.query) |
                 Q(tags__name__icontains=self.query),
-                is_active=True, 
+                is_active=True,
                 status=Post.POST_STATUS_PUBLISHED
             ).distinct()
         else:
@@ -186,8 +186,7 @@ class PostDetailView(DetailView):
             raise Http404()
 
         # Allow only post authors to view their draft posts
-        if (post.status == Post.POST_STATUS_DRAFT) \
-        and (post.user != self.request.user):
+        if (post.status == Post.POST_STATUS_DRAFT) and (post.user != self.request.user):
             raise Http404()
 
         # Increment post's view
@@ -229,10 +228,7 @@ class PostDetailView(DetailView):
             filter(posts_count__gt=0) .\
             order_by('-posts_count')[:3]
 
-        top_tags = Tag.objects. \
-            annotate(posts_count=Count('posts')). \
-            filter(posts_count__gt=0). \
-            order_by('-posts_count')[:5]
+        top_tags = Tag.get_top_tags(self)
 
         context.update({
             'post_tags': post_tags,

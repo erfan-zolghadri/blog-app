@@ -53,8 +53,8 @@ INSTALLED_APPS = [
     'guardian',
     'mptt',
     'accounts',
-    'core',
     'blog',
+    'core',
 ]
 
 MIDDLEWARE = [

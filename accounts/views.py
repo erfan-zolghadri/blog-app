@@ -60,8 +60,7 @@ class VerifyAccountView(RedirectView):
         try:
             user_id = urlsafe_base64_decode(self.kwargs['uidb64']).decode()
             user = get_user_model().objects.get(id=user_id)
-        except (TypeError, ValueError, OverflowError,
-            get_user_model().DoesNotExist):
+        except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
             user = None
 
         if (

@@ -3,6 +3,13 @@ a {
     color: #333;
 }
 
+button {
+    outline: none;
+    border: none;
+    background: none;
+    padding: 0;
+}
+
 img {
     display: block;
     width: 100%;

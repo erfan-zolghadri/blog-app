@@ -28,14 +28,23 @@
                                 <li>
                                     {% if request.user.is_authenticated %}
                                         {% if is_bookmarked %}
-                                            <a href="{% url 'blog:bookmark-post' slug=post.slug %}" class="btn btn-primary">
+                                            <button class="fs-3">
+                                                <i class="bi bi-bookmark-check-fill"></i>
+                                            </button>
+                                            {% comment %} <a href="{% url 'blog:bookmark-post' slug=post.slug %}" class="btn btn-primary">
                                                 &check; Bookmarked
-                                            </a>
+                                            </a> {% endcomment %}
                                         {% else %}
-                                            <a href="{% url 'blog:bookmark-post' slug=post.slug %}" class="btn btn-outline-primary">Bookmark</a>
+                                            {% comment %} <a href="{% url 'blog:bookmark-post' slug=post.slug %}" class="btn btn-outline-primary">Bookmark</a> {% endcomment %}
+                                            <button class="fs-3">
+                                                <i class="bi bi-bookmark"></i>
+                                            </button>
                                         {% endif %}
                                     {% else %}
-                                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-outline-primary">Bookmark</a>
+                                        {% comment %} <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-outline-primary">Bookmark</a> {% endcomment %}
+                                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="fs-3">
+                                            <i class="bi bi-bookmark"></i>
+                                        </a>
                                     {% endif %}
                                 </li>
                             {% endif %}

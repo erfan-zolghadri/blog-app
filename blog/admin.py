@@ -10,6 +10,7 @@ from blog.models import Category, Comment, Post, Tag
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['title']
+    list_per_page = 20
     prepopulated_fields = {'slug': ['title']}
     readonly_fields = ['created_at', 'updated_at']
     search_fields = ['title']
@@ -33,6 +34,7 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Comment)
 class CommentAdmin(MPTTModelAdmin):
     list_display = ['post', 'user', 'status']
+    list_per_page = 20
     readonly_fields = ['created_at', 'updated_at']
     search_fields = ['post__title', 'user__email', 'user__username']
     list_filter = ['status']
@@ -61,6 +63,7 @@ class PostAdmin(GuardedModelAdmin):
         'title', 'views', 'status', 'user',
         'category', 'is_active'
     ]
+    list_per_page = 20
     prepopulated_fields = {'slug': ['title']}
     readonly_fields = ['views', 'created_at', 'updated_at']
     search_fields = ['title', 'category__name']
@@ -88,6 +91,7 @@ class PostAdmin(GuardedModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ['name', 'slug']
+    list_per_page = 20
     prepopulated_fields = {'slug': ['name']}
     readonly_fields = ['created_at', 'updated_at']
     search_fields = ['name']

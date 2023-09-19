@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import Count, Q
 from django.urls import reverse
 from django.utils.text import slugify
-from django.utils.translation import gettext_lazy as _
 
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -39,6 +39,18 @@ class Tag(models.Model):
         if not self.id:
             self.slug = slugify(self.name)
         return super(Tag, self).save(*args, **kwargs)
+    
+    def get_top_tags(self):
+        '''
+        Get top tags based on published related posts
+        '''
+        published_posts_count = Count(
+            'posts',
+            filter=Q(posts__status=Post.POST_STATUS_PUBLISHED)
+        )
+        return Tag.objects.annotate(posts_count=published_posts_count) \
+            .filter(posts_count__gt=0) \
+            .order_by('-posts_count')[:8]
 
 
 class PublishedPostManager(models.Manager):
@@ -157,7 +169,7 @@ class Comment(MPTTModel):
     )
 
     class MPTTMeta:
-        order_insertion_by=['created_at']
+        order_insertion_by = ['created_at']
 
     def __str__(self):
         return f"by '{self.user.email}' on '{self.post.title}'"
