@@ -1,4 +1,8 @@
 from django.contrib import admin
+from django.db.models import Count
+from django.urls import reverse
+from django.utils.html import format_html
+from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
 from guardian.admin import GuardedModelAdmin
@@ -9,11 +13,13 @@ from blog.models import Category, Comment, Post, Tag
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['title']
+    list_display = ['id', 'title']
     list_per_page = 20
     prepopulated_fields = {'slug': ['title']}
     readonly_fields = ['created_at', 'updated_at']
-    search_fields = ['title']
+    list_display_links = ['id', 'title']
+    ordering = ['title']
+    search_fields = ['title__istartswith']
     fieldsets = [
         [
             None,
@@ -33,11 +39,14 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(MPTTModelAdmin):
-    list_display = ['post', 'user', 'status']
+    list_display = ['id', 'post', 'user', 'status']
     list_per_page = 20
     readonly_fields = ['created_at', 'updated_at']
-    search_fields = ['post__title', 'user__email', 'user__username']
+    list_editable = ['status']
     list_filter = ['status']
+    search_fields = [
+        'post__title', 'user__email__istartswith',
+        'user__username__istartswith']
     fieldsets = [
         [
             None,
@@ -60,14 +69,19 @@ class CommentAdmin(MPTTModelAdmin):
 @admin.register(Post)
 class PostAdmin(GuardedModelAdmin):
     list_display = [
-        'title', 'views', 'status', 'user',
-        'category', 'is_active'
+        'id', 'title', 'views', 'user', 'category',
+        'comments_count', 'is_active', 'status'
     ]
     list_per_page = 20
     prepopulated_fields = {'slug': ['title']}
     readonly_fields = ['views', 'created_at', 'updated_at']
-    search_fields = ['title', 'category__name']
-    list_filter = ['status', 'is_active', 'category']
+    list_display_links = ['id', 'title']
+    list_editable = ['is_active', 'status']
+    search_fields = [
+        'title', 'category__title__istartswith',
+        'user__email__istartswith'
+    ]
+    list_filter = ['status', 'is_active']
     fieldsets = [
         [
             None,
@@ -87,14 +101,33 @@ class PostAdmin(GuardedModelAdmin):
         ],
     ]
 
+    def get_queryset(self, request):
+        return super().get_queryset(request) \
+            .prefetch_related('comments') \
+            .annotate(comments_count=Count('comments'))
+    
+    @admin.display(description='# comments', ordering='comments_count')
+    def comments_count(self, post):
+        url = (
+            reverse('admin:blog_comment_changelist')
+            + '?'
+            + urlencode({'post_id': post.id})
+        )
+        return format_html(
+            '<a href={url}>{comments_count}</a>',
+            url=url,
+            comments_count=post.comments_count
+        )
+
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ['name', 'slug']
+    list_display = ['name']
     list_per_page = 20
     prepopulated_fields = {'slug': ['name']}
     readonly_fields = ['created_at', 'updated_at']
-    search_fields = ['name']
+    ordering = ['name']
+    search_fields = ['name__istartswith']
     fieldsets = [
         [
             None,
