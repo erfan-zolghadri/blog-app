@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count, F, Q
 from django.forms.forms import BaseForm
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -347,28 +347,29 @@ class CommentCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 
 
 class BookmarkPostView(LoginRequiredMixin, View):
-    def get(self, request, slug):
-        post = get_object_or_404(
-            Post,
-            slug=slug,
-            is_active=True,
-            status=Post.POST_STATUS_PUBLISHED
-        )
-
-        if post.bookmarks.filter(id=request.user.id).exists():
-            messages.success(
-                request,
-                _('Post has been successfully removed from your bookmarks.')
+    def post(self, request):
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            post_pk = int(request.POST.get('postPk'))
+            post = get_object_or_404(
+                Post,
+                pk=post_pk,
+                is_active=True,
+                status=Post.POST_STATUS_PUBLISHED
             )
-            post.bookmarks.remove(request.user)
-        else:
-            messages.success(
-                request,
-                _('Post has been successfully added to your bookmarks.')
-            )
-            post.bookmarks.add(request.user)
 
-        return redirect("blog:post-detail", slug)
+            if post.bookmarks.filter(id=request.user.id).exists():
+                post.bookmarks.remove(request.user)
+                status = 'success'
+                message = 'bookmark removed'
+            else:
+                post.bookmarks.add(request.user)
+                status = 'success'
+                message = 'bookmarked'
+
+            return JsonResponse({
+                'status': status,
+                'message': message
+            })
 
 
 class BookmarksView(LoginRequiredMixin, ListView):

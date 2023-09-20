@@ -32,7 +32,7 @@ urlpatterns = [
         name='search-post-list'
     ),
     path(
-        'posts/<slug:slug>/bookmark/',
+        'posts/bookmark/',
         views.BookmarkPostView.as_view(),
         name='bookmark-post'
     ),

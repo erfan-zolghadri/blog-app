@@ -23,48 +23,47 @@
                             <img src="{% static 'images/no_image_available.png' %}" alt="Post Image">
                         {% endif %}
                     </div>
-                        <ul class="d-flex gap-1 p-0 my-3">
-                            {% if is_bookmarkable %}
-                                <li>
-                                    {% if request.user.is_authenticated %}
-                                        {% if is_bookmarked %}
-                                            <button class="fs-3">
-                                                <i class="bi bi-bookmark-check-fill"></i>
-                                            </button>
-                                            {% comment %} <a href="{% url 'blog:bookmark-post' slug=post.slug %}" class="btn btn-primary">
-                                                &check; Bookmarked
-                                            </a> {% endcomment %}
-                                        {% else %}
-                                            {% comment %} <a href="{% url 'blog:bookmark-post' slug=post.slug %}" class="btn btn-outline-primary">Bookmark</a> {% endcomment %}
-                                            <button class="fs-3">
-                                                <i class="bi bi-bookmark"></i>
-                                            </button>
-                                        {% endif %}
-                                    {% else %}
-                                        {% comment %} <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-outline-primary">Bookmark</a> {% endcomment %}
-                                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="fs-3">
-                                            <i class="bi bi-bookmark"></i>
-                                        </a>
-                                    {% endif %}
-                                </li>
-                            {% endif %}
+                    {% if is_bookmarkable %}
+                        <div class="mt-2">
                             {% if request.user.is_authenticated %}
-                                {% if perms.blog.change_post %}
-                                    {% if "olp_blog_change_post" in post_perms %}
-                                        <li>
-                                            <a href="{% url 'blog:post-update' slug=post.slug %}" class="btn btn-warning">Edit post</a>
-                                        </li>
-                                    {% endif %}
+                                {% if is_bookmarked %}
+                                    <button class="btn-bookmark fs-3" data-pk="{{ post.pk }}" data-url="{% url 'blog:bookmark-post' %}">
+                                        <i class="bi bi-bookmark-check-fill"></i>
+                                    </button>
+                                    {% comment %} <a href="{% url 'blog:bookmark-post' pk=post.pk %}" class="btn btn-primary">
+                                        &check; Bookmarked
+                                    </a> {% endcomment %}
+                                {% else %}
+                                    {% comment %} <a href="{% url 'blog:bookmark-post' pk=post.pk %}" class="btn btn-outline-primary">Bookmark</a> {% endcomment %}
+                                    <button class="btn-bookmark fs-3" data-pk="{{ post.pk }}" data-url="{% url 'blog:bookmark-post' %}">
+                                        <i class="bi bi-bookmark"></i>
+                                    </button>
                                 {% endif %}
-                                {% if perms.blog.delete_post %}
-                                    {% if "olp_blog_change_post" in post_perms %}
-                                        <li>
-                                            <a href="{% url 'blog:post-delete' slug=post.slug %}" class="btn btn-danger">Delete post</a>
-                                        </li>
-                                    {% endif %}
+                            {% else %}
+                                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="fs-3">
+                                    <i class="bi bi-bookmark"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    {% if request.user.is_authenticated %}
+                        <ul class="d-flex gap-1 p-0">
+                            {% if perms.blog.change_post %}
+                                {% if "olp_blog_change_post" in post_perms %}
+                                    <li>
+                                        <a href="{% url 'blog:post-update' slug=post.slug %}" class="btn btn-warning">Edit post</a>
+                                    </li>
+                                {% endif %}
+                            {% endif %}
+                            {% if perms.blog.delete_post %}
+                                {% if "olp_blog_change_post" in post_perms %}
+                                    <li>
+                                        <a href="{% url 'blog:post-delete' slug=post.slug %}" class="btn btn-danger">Delete post</a>
+                                    </li>
                                 {% endif %}
                             {% endif %}
                         </ul>
+                    {% endif %}
                     <h2 class="h5 mt-3">
                         <a href="{% url 'blog:user-post-list' username=post.user.username %}">
                             Author: {{ post.user.get_full_name }}
