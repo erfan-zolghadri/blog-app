@@ -32,6 +32,9 @@ class Tag(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
 
@@ -169,7 +172,7 @@ class Comment(MPTTModel):
     )
 
     class MPTTMeta:
-        order_insertion_by = ['created_at']
+        order_insertion_by = ['-created_at']
 
     def __str__(self):
-        return f"by '{self.user.email}' on '{self.post.title}'"
+        return f'Comment id={self.id}'

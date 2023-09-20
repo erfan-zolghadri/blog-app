@@ -30,11 +30,7 @@
                                     <button class="btn-bookmark fs-3" data-pk="{{ post.pk }}" data-url="{% url 'blog:bookmark-post' %}">
                                         <i class="bi bi-bookmark-check-fill"></i>
                                     </button>
-                                    {% comment %} <a href="{% url 'blog:bookmark-post' pk=post.pk %}" class="btn btn-primary">
-                                        &check; Bookmarked
-                                    </a> {% endcomment %}
                                 {% else %}
-                                    {% comment %} <a href="{% url 'blog:bookmark-post' pk=post.pk %}" class="btn btn-outline-primary">Bookmark</a> {% endcomment %}
                                     <button class="btn-bookmark fs-3" data-pk="{{ post.pk }}" data-url="{% url 'blog:bookmark-post' %}">
                                         <i class="bi bi-bookmark"></i>
                                     </button>

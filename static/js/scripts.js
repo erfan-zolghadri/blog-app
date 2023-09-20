@@ -1,4 +1,5 @@
 $(function () {
+    // Bookmark Functionality
     $(".btn-bookmark").on("click", function (e) {
         e.preventDefault();
         const url = $(this).attr("data-url");
